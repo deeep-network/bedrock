@@ -1,0 +1,15 @@
+---
+- name: Converge
+  hosts: molecule
+  gather_facts: true
+  become: true
+  vars:
+    storagechain_node_name: 10tb-10
+    storagechain_node_id: 65ab14980f5f373b2619c585
+    storagechain_email: travisf@gmail.com
+    storagechain_password: Funky77house!
+    storagechain_node_size: 2090GB
+  tasks:
+    - name: Test role
+      ansible.builtin.include_role:
+        name: depin.services.storagechain

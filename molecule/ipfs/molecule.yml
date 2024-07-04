@@ -1,0 +1,19 @@
+---
+driver:
+  name: default
+dependency:
+  name: galaxy
+  options:
+    requirements-file: ../../dev/requirements.yml
+platforms:
+  - name: instance
+    image: ubuntu:noble
+provisioner:
+  name: ansible
+  playbooks:
+    create: ../../dev/substrate/orbstack/create.yml
+    destroy: ../../dev/substrate/orbstack/destroy.yml
+    prepare: ../../dev/substrate/orbstack/prepare.yml
+  inventory:
+    links:
+      hosts: ../../dev/inventory/

@@ -1,0 +1,10 @@
+---
+- name: Converge
+  hosts: molecule
+  gather_facts: true
+  tasks:
+    - name: Test role
+      vars:
+        ipfs_datastore_storage_max: 30000GB
+      ansible.builtin.include_role:
+        name: depin.libs.ipfs
