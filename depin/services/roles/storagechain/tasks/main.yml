@@ -70,10 +70,10 @@
   delay: 5
   until: send_ipv4_address is not failed
 
-# - name: Enable DDNS
-#   vars:
-#     inadyn_hostname: "{{ storagechain_dns }}"
-#   ansible.builtin.include_role:
-#     name: depin.libs.inadyn
+- name: Enable DDNS
+  vars:
+    inadyn_hostname: "{{ storagechain_dns }}"
+  ansible.builtin.include_role:
+    name: depin.libs.inadyn
 
 # 5. setup firewall

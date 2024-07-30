@@ -3,7 +3,7 @@
   ansible.builtin.apt:
     name: inadyn
     update_cache: true
-    upgrade: true
+    state: latest
 
 ## @todo - need to secure token (SALT pillar)
 - name: Update inadyn.conf for Cloudflare

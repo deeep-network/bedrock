@@ -5,6 +5,7 @@ packages:
   - curl
   - jq
   - unzip
+  - pipx
 package_upgrade: true
 package_update: true
 
@@ -17,3 +18,15 @@ users:
     lock_passwd: true
     ssh_authorized_keys:
       - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOEu3Yh+xr+oNfcj72bcqcZNhg3D1SzeHh+BQKX4/05V anthony@nerdnode.io
+
+write_files:
+    - path: /etc/environment
+      append: true
+      content: |
+        export PIPX_HOME=/opt/pipx
+        export PIPX_BIN_DIR=/usr/local/bin
+
+runcmd:
+  - [ pipx, install, ansible-core ]
+  - [ pipx, inject, ansible-core, psutil ]
+  - [ pipx, ensurepath ]
