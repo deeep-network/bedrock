@@ -2,7 +2,6 @@
 - name: Check pre-requisites
   ansible.builtin.include_tasks: preflight.yml
 
-# 1. download files
 - name: Download files
   become: true
   ansible.builtin.unarchive:
@@ -10,7 +9,6 @@
     src: "{{ storagechain_download_url }}"
     dest: /tmp
 
-# 2. setup ipfs
 - name: Install IPFS
   vars:
     ipfs_private_network: true
@@ -25,7 +23,6 @@
   ansible.builtin.include_role:
     name: depin.libs.ipfs
 
-# 3. setup ipfs-cluster-follow
 - name: Install IPFS Cluster Follow
   vars:
     ipfs_cluster_follow_version: storagechain
@@ -44,7 +41,6 @@
   ansible.builtin.include_role:
     name: depin.libs.ipfs_cluster_follow
 
-# 4. setup file-server-lin
 - name: Install File Server
   ansible.builtin.include_tasks: file-server-lin.yml
 
