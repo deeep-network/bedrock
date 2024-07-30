@@ -72,4 +72,17 @@
   ansible.builtin.include_role:
     name: depin.libs.inadyn
 
-# 5. setup firewall
+# @todo - update to using netbox source of truth
+- name: Set firwall rules
+  community.general.ufw:
+    rule: allow
+    port: "{{ _storagechain_port }}"
+    proto: tcp
+  loop:
+    - 3008
+    - 4001
+    - 5001
+    - 8080
+    - 9094:9096
+  loop_control:
+    loop_var: _storagechain_port
