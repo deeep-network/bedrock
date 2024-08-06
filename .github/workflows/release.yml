@@ -73,7 +73,8 @@ jobs:
                 name: Get collection name
                 id: collecion
                 run: |
-                    echo "tarball=$(find ./artifacts -type f -name '*.tar.gz')" >> $GITHUB_OUTPUT
+                    file=$(find ./artifacts -type f -name '*.tar.gz')
+                    echo "tarball=$(basename file)" >> $GITHUB_OUTPUT
             - 
                 name: Upload artifact
                 uses: actions/upload-artifact@v4
