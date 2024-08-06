@@ -68,7 +68,7 @@ jobs:
                 name: Build collection
                 working-directory: ${{ matrix.dir }}
                 run: |
-                    ansible-galaxy collection build --output-path='./artifacts'
+                    ansible-galaxy collection build --output-path='${GITHUB_WORKSPACE}/artifacts'
             - 
                 name: Upload artifact
                 uses: actions/upload-artifact@v4
