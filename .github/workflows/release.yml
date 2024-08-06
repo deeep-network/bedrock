@@ -39,6 +39,10 @@ jobs:
                 name: Checkout
                 uses: actions/checkout@v4
             -
+                name: Create artifacts directory
+                run: |
+                  mkdir artifacts
+            -
                 name: Import GPG key
                 uses: crazy-max/ghaction-import-gpg@v6
                 id: gpg-signing-key
