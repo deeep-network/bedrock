@@ -66,6 +66,7 @@ jobs:
                     ansible-sign project gpg-sign .
             - 
                 name: Build collection
+                working-directory: ${{ matrix.dir }}
                 run: |
                     ansible-galaxy collection build --output-path='./artifacts'
             - 
