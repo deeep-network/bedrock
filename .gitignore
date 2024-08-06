@@ -1,2 +1,8 @@
+
+
+# collections
+.ansible-sign
 *.tar*
+
+.DS_Store
 __pycache__
