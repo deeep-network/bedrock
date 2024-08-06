@@ -70,14 +70,13 @@ jobs:
                 run: |
                     ansible-galaxy collection build --output-path='${GITHUB_WORKSPACE}/artifacts'
             -
-                name: Set output
-                env:
-                    COLLECTION_DIR: ${{ matrix.dir }}
+                name: Get collection name
+                id: collecion
                 run: |
-                    echo "collection=${$COLLECTION_DIR##*/}" >> $GITHUB_OUTPUT
+                    echo "tarball=$(find ./artifacts -type f -name '*.tar.gz')" >> $GITHUB_OUTPUT
             - 
                 name: Upload artifact
                 uses: actions/upload-artifact@v4
                 with:
-                    name: ansible-collections
+                    name: ${{ steps.collecion.outputs.tarball }}
                     path: ./artifacts/
