@@ -73,7 +73,7 @@ jobs:
                 name: Get collection name
                 id: collecion
                 run: |
-                    echo "name=$(basename ${{ matrix.dir }})" >> $GITHUB_OUTPUT
+                    echo "name=$(echo ${{ matrix.dir }} | tr / . | sed -E 's/\.\.+//g')" >> $GITHUB_OUTPUT
             - 
                 name: Upload artifact
                 uses: actions/upload-artifact@v4
