@@ -26,7 +26,7 @@ jobs:
                         jq --raw-input --slurp --compact-output 'split("\n")[:-1]'
                     )" >> ${GITHUB_OUTPUT}
 
-    release-collections:
+    sign-and-build:
         needs: setup
         runs-on: ubuntu-latest
         strategy:
@@ -73,11 +73,17 @@ jobs:
                 name: Get collection name
                 id: collecion
                 run: |
-                    file=$(find ./artifacts -type f -name '*.tar.gz')
-                    echo "tarball=$(basename file)" >> $GITHUB_OUTPUT
+                    echo "name=$(basename ${{ matrix.dir }})" >> $GITHUB_OUTPUT
             - 
                 name: Upload artifact
                 uses: actions/upload-artifact@v4
                 with:
-                    name: ${{ steps.collecion.outputs.tarball }}
+                    name: ${{ steps.collecion.outputs.name }}
                     path: ./artifacts/
+    merge:
+        runs-on: ubuntu-latest
+        needs: sign-and-build
+        steps:
+            - 
+                name: Merge Artifacts
+                uses: actions/upload-artifact/merge@v4
