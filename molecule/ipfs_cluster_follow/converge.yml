@@ -1,0 +1,10 @@
+---
+- name: Converge
+  hosts: molecule
+  gather_facts: true
+  tasks:
+    - name: Test role
+      vars:
+        ipfs_cluster_follow_cluster_peername: 'molecule-test-name'
+      ansible.builtin.include_role:
+        name: depin.libs.ipfs_cluster_follow

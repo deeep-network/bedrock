@@ -1,0 +1,16 @@
+---
+- name: Converge
+  hosts: molecule
+  gather_facts: true
+  become: true
+  vars:
+    storagechain_node_name: nn-molecule-test
+    storagechain_node_id: 66a93b8e13eca7bce9d4a90e
+    storagechain_email: anthony@nerdnode.io
+    storagechain_password: U2FsdGVkX1+HMta63vo/R5jdjnTmMk8pjFgQ7Nq+EO0x/bUHQSRTsllsXXKjFxwCqbH8zbWjULll5MuQDPOPSYK/61zdZtAOnSfWiVXuTHU=
+    storagechain_node_size: 20000GB
+    storagechain_dns: etttttlelt.sc.nerdnode.io
+  tasks:
+    - name: Test role
+      ansible.builtin.include_role:
+        name: depin.services.storagechain

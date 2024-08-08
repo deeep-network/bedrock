@@ -1,0 +1,23 @@
+---
+- name: Install In-a-Dyn
+  ansible.builtin.apt:
+    name: inadyn
+    update_cache: true
+    state: latest
+
+## @todo - need to secure token (SALT pillar)
+- name: Update inadyn.conf for Cloudflare
+  become: true
+  ansible.builtin.blockinfile:
+    path: /etc/inadyn.conf
+    marker: "# {mark} ANSIBLE MANAGED -- CLOUDFLARE PROVIDER"
+    block: |
+      provider cloudflare.com {
+          username = {{ (inadyn_hostname | split('.'))[-2:] | join('.') }}
+          password = oOXdoUwU_bAxiyqR3mP1PtNR8503UjPAgM1HttB_
+          hostname = {{ inadyn_hostname }}
+          ttl      = 1
+          proxied  = false
+      }
+    create: true
+  notify: restart inadyn
