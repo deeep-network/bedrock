@@ -73,13 +73,13 @@
     name: depin.libs.inadyn
 
 # @todo - update to using netbox source of truth
-- name: Security | allow SSH access
+- name: Allow SSH access
   community.general.ufw:
     rule: allow
     port: ssh
     proto: tcp
 
-- name: Set firwall rules
+- name: Set firewall rules
   community.general.ufw:
     rule: allow
     port: "{{ _storagechain_port }}"
