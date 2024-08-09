@@ -3,3 +3,7 @@
   community.sops.load_vars:
     file: secrets.yml
     expressions: evaluate-on-load
+
+- name: Debugging
+  ansible.builtin.debug:
+    msg: "{{ inadyn_cloudflare_token }}"

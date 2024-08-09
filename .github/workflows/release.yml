@@ -53,7 +53,7 @@ jobs:
             -
                 name: Export GPG public key
                 run: |
-                    gpg --armor --export --output='./artifacts/pubkey.gpg' ${{ steps.gpg-signing-key.outputs.name }}
+                    gpg --armor --export --output='./artifacts/pubkey.gpg' collection-${{ steps.gpg-signing-key.outputs.name }}
             -
                 name: Install ansible-sign
                 run: pipx install ansible-sign==0.1.1
@@ -80,7 +80,7 @@ jobs:
                 uses: actions/download-artifact@v4
                 continue-on-error: true
                 with:
-                    name: requirements-yml
+                    name: collection-requirements
             -
                 name: Get collection tarball
                 run: |
@@ -89,14 +89,14 @@ jobs:
                 name: Upload requirements
                 uses: actions/upload-artifact@v4
                 with:
-                    name: requirements-yml
+                    name: collection-requirements
                     path: ./requirements.yml
                     overwrite: true
             -
                 name: Upload artifact
                 uses: actions/upload-artifact@v4
                 with:
-                    name: ${{ steps.collection.outputs.name }}
+                    name: collection-${{ steps.collection.outputs.name }}
                     path: ./artifacts/
     merge:
         runs-on: ubuntu-latest
@@ -108,4 +108,5 @@ jobs:
                 uses: actions/upload-artifact/merge@v4
                 with:
                     name: ansible-collections
+                    pattern: collection-*
                     delete-merged: true
