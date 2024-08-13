@@ -1,3 +1,6 @@
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/deeep-network/ansible_collections/badge)](https://scorecard.dev/viewer/?uri=github.com/deeep-network/ansible_collections)
+
+
 # DePIN Ansible Collection
 
 ## installation
