@@ -1,0 +1,11 @@
+## used for molecule tests shouldn't include this collection 
+# to ensure hot reload of collection occurs for testing
+collections:
+  - name: theko2fi.multipass
+    version: 0.3.0
+  - name: community.sops
+    version: 1.8.1
+  - name: community.general
+    version: 9.3.0
+  - name: ansible.utils
+    version: 5.1.0

@@ -2,5 +2,7 @@
 .ansible-sign
 *.tar*
 
+**/substrate/cloud-init.yml
+
 .DS_Store
 __pycache__

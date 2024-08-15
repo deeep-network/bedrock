@@ -42,11 +42,17 @@ jobs:
     env:
       ANSIBLE_SIGN_GPG_PASSPHRASE: ${{ secrets.ANSIBLE_SIGN_GPG_PASSPHRASE }}
     steps:
-      - name: Harden Runner
+      -
+        name: Harden Runner
         uses: step-security/harden-runner@5c7944e73c4c2a096b17a9cb74d65b6c2bbafbde # v2.9.1
         with:
           egress-policy: audit
-
+      -
+        name: Install YQ
+        uses: dcarbone/install-yq-action@64b1b9eb28920bb1a4c13c05321df284f9a8f940 # v1.1.1
+        with:
+          version: v4.44.3
+          force: true
       -
         name: Checkout
         uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
@@ -94,11 +100,13 @@ jobs:
         with:
           name: requirements-yml
       -
-        name: Get collection tarball
-        run: |
-          NAME=$(basename $(find ./artifacts -name '*.tar.gz')) yq -i '([{"name": strenv(NAME)}] + .collections | unique_by(.name)) as $uniq | .collections = $uniq' requirements.yml
+        name: Update requirements file
+        run: >-
+          export NAME=$(basename $(find ./artifacts -name '*.tar.gz'));
+          yq -i '([{"name": strenv(NAME)}] + .collections | unique_by(.name)) as $uniq | .collections = $uniq'
+          requirements.yml || yq -n '.collections += [{"name": strenv(NAME)}]' > requirements.yml
       -
-        name: Upload requirements
+        name: Upload requirements file
         uses: actions/upload-artifact@834a144ee995460fba8ed112a2fc961b36a5ec5a # v4.3.6
         with:
           name: requirements-yml

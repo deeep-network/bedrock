@@ -1,10 +1,18 @@
----
-- name: Download and install collections
+- name: Install signed DePIN Collections
   hosts: localhost
   gather_facts: true
-  become: true
   tasks:
+    - name: Get latest version of collection
+      ansible.builtin.uri:
+        url: https://api.github.com/repos/deeep-network/ansible_collections/releases/latest
+      register: _latest
+
+    - name: Set version
+      ansible.builtin.set_fact:
+        _version: "{{ collection_version | default(_latest['json']['tag_name']) }}"
+
     - name: Ensure directory exists
+      become: true
       ansible.builtin.file:
         path: /opt/deeep-network/ansible-collections
         state: directory
@@ -12,8 +20,9 @@
         recurse: true
 
     - name: Download zip file
+      become: true
       ansible.builtin.unarchive:
-        src: https://github.com/deeep-network/ansible_collections/releases/download/v1.0.0/ansible-collections.zip
+        src: https://github.com/deeep-network/ansible_collections/releases/download/{{ _version }}/ansible-collections.zip
         dest: /opt/deeep-network/ansible-collections
         remote_src: true
 
