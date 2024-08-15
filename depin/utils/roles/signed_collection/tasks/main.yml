@@ -1,0 +1,29 @@
+---
+- name: Get latest version of collection
+  ansible.builtin.uri:
+    url: https://api.github.com/repos/deeep-network/ansible_collections/releases/latest
+  register: _latest
+
+- name: Set version
+  ansible.builtin.set_fact:
+    _version: "{{ collection_version | default(_latest['json']['tag_name']) }}"
+
+- name: Ensure directory exists
+  ansible.builtin.file:
+    path: /opt/deeep-network/ansible-collections
+    state: directory
+    mode: '0755'
+    recurse: true
+
+- name: Download zip file
+  ansible.builtin.unarchive:
+    src: https://github.com/deeep-network/ansible_collections/releases/download/{{ _version }}/ansible-collections.zip
+    dest: /opt/deeep-network/ansible-collections
+    remote_src: true
+
+- name: Install collections
+  ansible.builtin.command:
+    chdir: /opt/deeep-network/ansible-collections
+    cmd: ansible-galaxy install -r requirements.yml
+  register: ansible_galaxy_install
+  changed_when: "'Nothing to do' not in ansible_galaxy_install.stdout"

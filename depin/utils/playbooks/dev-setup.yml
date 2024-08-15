@@ -1,7 +1,8 @@
-- name: Install signed DePIN Collections
+---
+- name: Setup Development Environment
   hosts: localhost
   gather_facts: true
   tasks:
-    - name: Install collections
+    - name: Install signed DePIN Collections
       ansible.builtin.include_role:
         name: depin.utils.signed_collection

@@ -1,0 +1,8 @@
+---
+lxd_hostname: "{{ lookup('ansible.builtin.pipe', 'hostname -s') }}"
+lxd_default_hostname: vm-{{ vm_id }}.box.nerd-node.com
+lxd_vm_hostname: "{{ hostname | default(lxd_default_hostname) }}"
+
+lxd_vm_ipv4_address: "{{ ansible_default_ipv4['address'] | default(omit) }}"
+
+lxd_vm_image: "22.04"
