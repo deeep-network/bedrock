@@ -178,7 +178,7 @@
 
     - name: Install collections
       ansible.builtin.shell: |
-        curl -s https://raw.githubusercontent.com/deeep-network/ansible_collections/main/depin/utils/playbooks/raw/install_collections.yml | ansible-playbook /dev/stdin
+        curl -s https://raw.githubusercontent.com/deeep-network/ansible_collections/main/depin/utils/playbooks/install_collections.yml | ansible-playbook /dev/stdin
       args:
         creates: ~/.ansible/collections/ansible_collections/depin
       changed_when: false
