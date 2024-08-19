@@ -5,10 +5,52 @@
   tags:
     - docker
 
+- name: Install dependencies
+  ansible.builtin.apt:
+    name:
+      - apt-transport-https
+      - ca-certificates
+      - curl
+      - software-properties-common
+      - python3-pip
+      - virtualenv
+      - python3-setuptools
+      - python3-requests
+    state: present
+    update_cache: true
+  become: true
+
+- name: Add Docker GPG apt Key
+  apt_key:
+    url: https://download.docker.com/linux/ubuntu/gpg
+    state: present
+  become: true
+
+- name: Add Docker Repository
+  ansible.builtin.apt_repository:
+    repo: deb https://download.docker.com/linux/ubuntu focal stable
+    state: present
+  become: true
+
+- name: Update apt and install docker-ce
+  apt:
+    name: docker-ce
+    state: latest
+    update_cache: true
+  become: true
+
+- name: Setup docker user
+  ansible.builtin.user:
+    name: docker
+    groups: "docker,sudo"
+    append: true
+  become: true
+
 - name: Pull an image
   community.docker.docker_container:
     name: presearch
     image: presearch/node
+  become: true
 
 - name: Start a container with a command
   community.docker.docker_container:
@@ -19,3 +61,4 @@
       - presearch-node-storage:/app/node
     env:
       REGISTRATION_CODE: "{{ presearch_reg_code }}"
+  become: true
