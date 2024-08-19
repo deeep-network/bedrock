@@ -20,8 +20,10 @@
       block:
         - name: Set all auto update options to 0
           ansible.builtin.copy:
-            src: templates/20auto-upgrades.conf
             dest: /etc/apt/apt.conf.d/20auto-upgrades
+            content: |
+              APT::Periodic::Update-Package-Lists "0";
+              APT::Periodic::Unattended-Upgrade "0";
             mode: '0644'
           failed_when: false
 
@@ -46,8 +48,9 @@
       ansible.builtin.copy:
         dest: /usr/bin/do-release-upgrade
         content: |
-          APT::Periodic::Update-Package-Lists "0";
-          APT::Periodic::Unattended-Upgrade "0";
+          #!/usr/bin/python3
+          import sys
+          sys.exit(1)
         backup: true
         mode: '0755'
 
