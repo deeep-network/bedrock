@@ -30,7 +30,6 @@ sudo apt-get install ansible
 ansible-galaxy collection install community.libvirt
 ansible-galaxy collection install -r requirements.yml
 sudo usermod -aG libvirt $(whoami)
-```
 echo 'export PATH=$HOME/.local/bin:$PATH' >> ~/.bashrc
 source ~/.bashrc
 echo $PATH

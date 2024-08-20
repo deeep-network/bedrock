@@ -5,10 +5,10 @@
   tasks:
     - name: Destroy KVM VM
       delegate_to: localhost
-      community.libvirt.libvirt_vm:
+      community.libvirt.virt:
         name: "{{ inventory_hostname }}"
         state: absent
-      changed_when: false
+      changed_when: true
       failed_when: false
 
 - name: Remove dynamic molecule inventory
@@ -19,3 +19,15 @@
       ansible.builtin.file:
         path: ../../inventory/molecule_inventory.yml
         state: absent
+
+    - name: Remove molecule group from inventory
+      ansible.builtin.set_fact:
+        molecule_inventory: "{{ molecule_inventory | combine({'molecule': {'hosts': {}}}, recursive=true) }}"
+      when: molecule_inventory is defined
+
+    - name: Remove inventory file if empty
+      ansible.builtin.file:
+        path: ../../inventory/molecule_inventory.yml
+        state: absent
+      when: molecule_inventory is defined and molecule_inventory.molecule.hosts is defined and molecule_inventory.molecule.hosts | length == 0
+
