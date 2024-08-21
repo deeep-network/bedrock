@@ -1,0 +1,68 @@
+---
+- name: Install and Start presearch docker node
+  hosts: all
+  become: true
+
+  vars:
+      docker_container_version: "1.2.34"
+
+  tasks:
+    - name: Update&Upgrade
+      ansible.builtin.apt:
+        name: aptitude
+        state: present
+        update_cache: true
+
+    - name: Install dependencies
+      ansible.builtin.apt:
+        name:
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - software-properties-common
+          - python3-pip
+          - virtualenv
+          - python3-setuptools
+          - python3-requests
+        state: present
+        update_cache: true
+
+    - name: Add Docker GPG apt Key
+      apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
+
+    - name: Add Docker Repository
+      ansible.builtin.apt_repository:
+        repo: deb https://download.docker.com/linux/ubuntu focal stable
+        state: present
+
+    - name: Update apt and install docker-ce
+      apt:
+        name: docker-ce
+        state: latest
+        update_cache: true
+
+    - name: Setup docker user
+      ansible.builtin.user:
+        name: docker
+        groups: "docker,sudo"
+        append: true
+
+    - name: Pull an image
+      community.docker.docker_container:
+        state: present
+        name: presearch
+        image: presearch/node:{{ docker_container_version }}
+
+    - name: Start a container with a command
+      community.docker.docker_container:
+        name: presearch
+        state: started
+        restart: true
+        image:  presearch/node:{{ docker_container_version }}
+        restart_policy: unless-stopped
+        volumes:
+          - presearch-node-storage:/app/node
+        env:
+          REGISTRATION_CODE: "{{ presearch_reg_code }}"

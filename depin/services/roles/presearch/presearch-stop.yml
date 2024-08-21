@@ -1,0 +1,13 @@
+---
+- name: Stop presearch docker node
+  hosts: all
+  become: true
+
+  vars:
+      docker_container_version: "1.2.34"
+
+  tasks:
+    - name: Stop a container with a command
+      community.docker.docker_container:
+        name: presearch
+        state: stopped

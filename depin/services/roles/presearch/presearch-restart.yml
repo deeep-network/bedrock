@@ -1,0 +1,37 @@
+---
+- name: Stop presearch docker node
+  hosts: all
+  become: true
+
+  vars:
+      docker_container_version: "1.2.34"
+
+  tasks:
+    - name: Restart Docker
+      ansible.builtin.service:
+        name: docker
+        state: restarted
+        enabled: true
+
+    - name: Stop a container with a command
+      community.docker.docker_container:
+        name: presearch
+        state: stopped
+
+    - name: Pull an image
+      community.docker.docker_container:
+        state: present
+        name: presearch
+        image: presearch/node:{{ docker_container_version }}
+
+    - name: Start a container with a command
+      community.docker.docker_container:
+        name: presearch
+        state: started
+        restart: true
+        image:  presearch/node:{{ docker_container_version }}
+        restart_policy: unless-stopped
+        volumes:
+          - presearch-node-storage:/app/node
+        env:
+          REGISTRATION_CODE: "{{ presearch_reg_code }}"

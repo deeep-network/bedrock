@@ -1,0 +1,38 @@
+---
+- name: Uninstall presearch docker node
+  hosts: all
+  become: true
+
+  vars:
+      docker_container_version: "1.2.34"
+
+  tasks:
+    - name: Stop an image
+      community.docker.docker_container:
+        state: stopped
+        name: presearch
+
+    - name: Remove an image
+      community.docker.docker_container:
+        state: absent
+        name: presearch
+
+    - name: Unistall docker-ce
+      apt:
+        name: docker-ce
+        state: absent
+        update_cache: true
+        
+    - name: Uninstall dependencies
+      ansible.builtin.apt:
+        name:
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - software-properties-common
+          - python3-pip
+          - virtualenv
+          - python3-setuptools
+          - python3-requests
+        state: absent
+
