@@ -1,0 +1,100 @@
+name: New Service
+description: Issue to track the completion of a New Service
+title: "[New]: "
+labels: ["new", "enhancement", "service"]
+projects: ["deeep-network/1", "deeep-network/4"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking on a new Service! We can't wait to see it on the DeEEP Network
+  - type: input
+    id: contact
+    attributes:
+      label: Discord Handle
+      description: How can we get in touch with you if we need more info?
+      placeholder: ex. @anthonyra
+    validations:
+      required: false
+  - type: checkboxes
+    attributes:
+      label: Is there an existing issue for this?
+      description: Please search to see if an issue already exists including closed issues.
+      options:
+      - label: I have searched the existing issues
+        required: true
+  - type: checkboxes
+    attributes:
+      label: Have you discussed this in the Discord yet?
+      description: Not required but getting additional discussion on your Resolution is recommended.
+      options:
+      - label: I have discussed this Resolution in the [Discord](https://discord.gg/deeep-network)
+        required: false
+  - type: input
+    id: discord-link
+    attributes:
+      label: Discord Link
+      description: Please provide a Message Link to the Discord discussion or thread.
+      placeholder: ex. https://discord.com/channels/1009533970771349554/1011331602174988379/1011359420137095268
+    validations:
+      required: false
+  - type: input
+    id: service-documentation
+    attributes:
+      label: New Service - Documenation
+      description: Please provide the documentation link for setting up the service
+      placeholder: ex. https://ethereum.org/en/developers/docs/nodes-and-clients/run-a-node/
+    validations:
+      required: false
+  - type: textarea
+    id: new-service-checklist
+    attributes:
+      label: New Service - Checklist
+      description: Will be rendered in Markdown, allowing you to utilize its styling.
+      value: |
+        # [NAME]
+
+        Initialized using:
+        ```bash
+        ansible-galaxy role init [NAME] --init-path=depin/services/roles
+        ```
+
+        ### Dependencies
+        If an Ansible Role is needed because of a dependency ensure it's also initialized in `depin.libs`
+        ```bash
+        ansible-galaxy role init [NAME] --init-path=depin/libs/roles
+        ```
+
+        ### Commands
+        Ensure all of the listed commands are implemented for the New Service.
+
+        - [ ] install
+        - [ ] start
+        - [ ] stop
+        - [ ] restart
+        - [ ] update
+        - [ ] uninstall
+
+        ### Metrics
+
+        - [ ] custom Prometheus collector is provided (as necessary)
+        > Not required if service provides a prometheus endpoint that exposes the following
+          minimum requirements:
+            - status
+            - reset / restart counter
+
+        ### Logs
+
+        - [ ] service logs are collected via syslog
+        
+        ### 'galaxy.yml'
+
+        - [ ] updated version by one minor step (1.0.0 => 1.1.0)
+        > New Services should never create breaking changes but adds new features
+
+        - [ ] dependencies are updated for required collections
+
+        ### Molecule
+
+        - [ ] all `galaxy.yml` dependencies are added to `molecule/default/requirements.yml` for tests
+        - [ ] passes default tests
