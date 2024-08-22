@@ -1,5 +1,5 @@
 ---
-- name: Uninstall presearch docker node
+- name: Update presearch docker node
   hosts: all
   become: true
 

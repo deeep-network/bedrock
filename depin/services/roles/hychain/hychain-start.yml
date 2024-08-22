@@ -1,0 +1,10 @@
+---
+- name:  Start hychain node software
+  hosts: all
+  become: true
+
+  tasks:
+    - name: Start service hychain.service, if not started
+      ansible.builtin.service:
+        name: hychain.service
+        state: started

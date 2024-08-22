@@ -1,0 +1,68 @@
+---
+- name: Uninstall and install hychain node software
+  hosts: all
+  become: true
+
+  tasks:
+    - name: Stop service hychain.service
+      ansible.builtin.service:
+        name: hychain.service
+        state: stopped
+
+    - name: Disable service hychain.service
+      ansible.builtin.service:
+        name: hychain.service
+        enabled: false
+
+    - name: Delete content & directory
+      ansible.builtin.file:
+        state: absent
+        path: /home/hychain
+
+    - name: Delete hychain.service
+      ansible.builtin.file:
+        state: absent
+        path: /etc/systemd/system/hychain.service
+
+    - name: Update&Upgrade
+      ansible.builtin.apt:
+        name: aptitude
+        state: present
+        update_cache: true
+
+    - name: Install dependencies
+      ansible.builtin.apt:
+        name:
+          - git
+        state: present
+        update_cache: true
+
+    - name: Clone a repo with separate git directory
+      ansible.builtin.git:
+        repo: https://github.com/HYCHAIN/guardian-node-software.git
+        dest: /home/hychain
+        single_branch: yes
+        version: main
+
+    - name: Copy start file
+      ansible.builtin.copy:
+        content: |
+          #!/bin/bash
+          cd /home/hychain/cli/linux/
+          ./guardian-cli-linux guardian run {{ guardian_private_key }} --loop-interval-ms 3600000
+        dest: /home/hychain/cli/linux/hychain-start.sh
+
+    - name: Hychain service file
+      ansible.builtin.copy:
+        src: hychain.service
+        dest: /etc/systemd/system/hychain.service
+
+    - name: Enable service hychain.service
+      ansible.builtin.service:
+        name: hychain.service
+        enabled: yes
+
+    - name: Start service hychain.service, if not started
+      ansible.builtin.service:
+        name: hychain.service
+        state: started

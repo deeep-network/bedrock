@@ -1,0 +1,10 @@
+---
+- name: Stop hychain node software
+  hosts: all
+  become: true
+
+  tasks:
+    - name: Stop service hychain.service 
+      ansible.builtin.service:
+        name: hychain.service
+        state: stopped

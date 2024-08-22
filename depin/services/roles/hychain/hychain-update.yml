@@ -1,0 +1,49 @@
+---
+- name: Update and Start hychain node software
+  hosts: all
+  become: true
+
+  tasks:
+    - name: Stop service hychain.service
+      ansible.builtin.service:
+        name: hychain.service
+        state: stopped
+
+    - name: Delete content & directory
+      ansible.builtin.file:
+        state: absent
+        path: /home/hychain
+
+    - name: Delete hychain.service
+      ansible.builtin.file:
+        state: absent
+        path: /etc/systemd/system/hychain.service
+
+    - name: Clone a repo with separate git directory
+      ansible.builtin.git:
+        repo: https://github.com/HYCHAIN/guardian-node-software.git
+        dest: /home/hychain
+        single_branch: yes
+        version: main
+
+    - name: Hychain service file
+      ansible.builtin.copy:
+        src: hychain.service
+        dest: /etc/systemd/system/hychain.service
+
+    - name: Copy start file
+      ansible.builtin.copy:
+        content: |
+          #!/bin/bash
+          cd /home/hychain/cli/linux/
+          ./guardian-cli-linux guardian run {{ guardian_private_key }} --loop-interval-ms 3600000
+        dest: /home/hychain/cli/linux/hychain-start.sh
+
+    - name: Just force systemd to reread configs (2.4 and above)
+      ansible.builtin.systemd_service:
+        daemon_reload: true
+
+    - name: Start service hychain.service, if not started
+      ansible.builtin.service:
+        name: hychain.service
+        state: started
