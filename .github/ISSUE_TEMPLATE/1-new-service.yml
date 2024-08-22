@@ -28,7 +28,7 @@ body:
       label: Have you discussed this in the Discord yet?
       description: Not required but getting additional discussion on the Service will help.
       options:
-      - label: I have discussed this New Service in the [Discord](https://discord.gg/deeep-network)
+      - label: I have discussed this in the [Discord](https://discord.gg/deeep-network)
         required: false
   - type: input
     id: discord-link
@@ -41,7 +41,7 @@ body:
   - type: input
     id: service-documentation
     attributes:
-      label: New Service - Documenation
+      label: New Service - Documentation
       description: Please provide the documentation for setting up the Service
       placeholder: ex. https://ethereum.org/en/developers/docs/nodes-and-clients/run-a-node/
     validations:
@@ -52,8 +52,6 @@ body:
       label: New Service - Checklist
       description: Will be rendered in Markdown, allowing you to utilize its styling.
       value: |
-        # [NAME]
-
         Initialized using:
         ```bash
         ansible-galaxy role init [NAME] --init-path=depin/services/roles
