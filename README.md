@@ -20,6 +20,7 @@ apt install pipx
 pipx install ansible-core
 pipx inject ansible-core requests pyutils
 pipx install ansible-lint
+sudo pip3 install docker
 ```
 
 ```bash
