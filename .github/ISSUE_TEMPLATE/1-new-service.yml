@@ -11,7 +11,7 @@ body:
   - type: input
     id: contact
     attributes:
-      label: Discord Handle
+      label: Discord (Github) Handle
       description: How can we get in touch with you if we need more info?
       placeholder: ex. @anthonyra
     validations:
@@ -26,9 +26,9 @@ body:
   - type: checkboxes
     attributes:
       label: Have you discussed this in the Discord yet?
-      description: Not required but getting additional discussion on your Resolution is recommended.
+      description: Not required but getting additional discussion on the Service will help.
       options:
-      - label: I have discussed this Resolution in the [Discord](https://discord.gg/deeep-network)
+      - label: I have discussed this New Service in the [Discord](https://discord.gg/deeep-network)
         required: false
   - type: input
     id: discord-link
@@ -42,7 +42,7 @@ body:
     id: service-documentation
     attributes:
       label: New Service - Documenation
-      description: Please provide the documentation link for setting up the service
+      description: Please provide the documentation for setting up the Service
       placeholder: ex. https://ethereum.org/en/developers/docs/nodes-and-clients/run-a-node/
     validations:
       required: false
@@ -78,14 +78,14 @@ body:
         ### Metrics
 
         - [ ] custom Prometheus collector is provided (as necessary)
-        > Not required if service provides a prometheus endpoint that exposes the following
+        > Not required if Service provides a prometheus endpoint that exposes the following
           minimum requirements:
             - status
             - reset / restart counter
 
         ### Logs
 
-        - [ ] service logs are collected via syslog
+        - [ ] logs are collected via syslog
         
         ### 'galaxy.yml'
 
