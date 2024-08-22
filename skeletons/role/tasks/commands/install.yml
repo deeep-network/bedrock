@@ -4,6 +4,7 @@
 - name: Start
   ansible.builtin.include_tasks: commands/start.yml
 
+# @todo - assert correct version installed
 # relative to playbook (molecule - default)
 - name: Assert Install
   when: "'molecule' in groups"

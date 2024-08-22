@@ -1,0 +1,4 @@
+---
+netdata_cmd: "{{ depin_cmd | default('install') }}"
+netdata_vm_install: true
+netdata_vm_id: "{{ vm_hostname | split('.') | first | split('-') | last }}"
