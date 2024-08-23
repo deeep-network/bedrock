@@ -1,0 +1,5 @@
+---
+- name: Hychain {{ hychain_mode }}
+  ansible.builtin.include_tasks:
+    file: commands/{{ hychain_mode }}.yml
+

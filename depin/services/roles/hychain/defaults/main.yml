@@ -1,0 +1,5 @@
+---
+hychain_version: 0.0.1
+hychain_code: "{{ notdefined | mandatory }}"
+
+hychain_mode: install`
