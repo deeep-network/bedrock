@@ -1,0 +1,20 @@
+---
+- name: Stop service hychain.service
+  ansible.builtin.service:
+    name: hychain.service
+    state: stopped
+
+- name: Disable service hychain.service
+  ansible.builtin.service:
+    name: hychain.service
+    enabled: false
+
+- name: Delete content & directory
+  ansible.builtin.file:
+    state: absent
+    path: /home/hychain
+
+- name: Delete hychain.service
+  ansible.builtin.file:
+    state: absent
+    path: /etc/systemd/system/hychain.service

@@ -1,0 +1,5 @@
+---
+- name: Restarted node
+  ansible.builtin.service:
+    name: hychain.service
+    state: restarted

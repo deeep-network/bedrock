@@ -1,0 +1,15 @@
+[Unit]
+Description=hychain service
+After=network.target 
+ 
+[Service]
+User=root
+Group=root
+Type=simple
+ExecStart=/bin/bash /home/hychain/cli/linux/hychain-start.sh
+Restart=always
+RestartSec=5
+PIDFile=/tmp/hychain.pid
+ 
+[Install]
+WantedBy=multi-user.target 
