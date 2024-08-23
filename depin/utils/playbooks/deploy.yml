@@ -1,0 +1,20 @@
+---
+- name: Deploy LXD VMs
+  hosts: localhost
+  gather_facts: true
+  become: true
+  vars:
+    lxd_hostname: "{{ lookup('pipe', 'hostname -s') }}"
+    _filter: 'status=active cluster={{ lxd_hostname }}'
+    _vms: "{{ query('depin.libs.netbox', 'virtualization.virtual-machines', filter=_filter) }}"
+  tasks:
+    - name: Deploy pending VMs
+      when: _vms | length > 0
+      vars:
+        lxd_vm: "{{ _vm['value'] }}"
+      ansible.builtin.include_role:
+        name: depin.substrate.lxd
+      loop: "{{ _vms }}"
+      loop_control:
+        loop_var: _vm
+        label: "{{ _vm['value']['name'] }}"

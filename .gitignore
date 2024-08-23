@@ -4,5 +4,6 @@
 
 **/substrate/cloud-init.yml
 
+*.env
 .DS_Store
 __pycache__

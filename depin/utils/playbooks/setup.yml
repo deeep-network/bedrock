@@ -179,9 +179,16 @@
         mode: '0600'
         state: present
 
-    - name: Install collections
-      ansible.builtin.shell: |
-        curl -s https://raw.githubusercontent.com/deeep-network/ansible_collections/main/depin/utils/playbooks/install_collections.yml | ansible-playbook /dev/stdin
-      args:
+    - name: Fetch install collections playbook
+      ansible.builtin.uri:
+        url: https://raw.githubusercontent.com/deeep-network/ansible_collections/main/depin/utils/playbooks/install_collections.yml
+        return_content: true
+      register: _install_collections
+
+    - name: Run install collections playbook
+      ansible.builtin.command:
+        cmd: ansible-playbook /dev/stdin
         creates: ~/.ansible/collections/ansible_collections/depin
-      changed_when: false
+        stdin: "{{ _install_collections.content }}"
+      register: _install_collections_results
+      changed_when: (_install_collections_results.stdout | regex_search('changed=(\\d+)', '\\1') | first) | int > 0
