@@ -1,0 +1,5 @@
+---
+{{ role_name }}_cmd: install
+{{ role_name }}_credentials: {{ "{{ service_credentials }}" }}
+{{ role_name }}_programs:
+  - {{ role_name | replace('_', '-') }}

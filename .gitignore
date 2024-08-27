@@ -2,8 +2,12 @@
 .ansible-sign
 *.tar*
 
+# molecule
+build
 **/substrate/cloud-init.yml
 
-*.env
+.env*
+!dev.env*
+
 .DS_Store
 __pycache__

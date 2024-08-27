@@ -1,0 +1,21 @@
+- name: Gather info
+  ansible.builtin.include_tasks:
+    file: asserts_info.yml
+
+- name: Check common stats
+  ansible.builtin.assert:
+    that:
+      - not item['stat']['exists']
+    quiet: true
+  loop: "{{ _binary_file['results'] + _program_dir['results'] + _service_file['results'] }}"
+  loop_control:
+    label: "{{ item['stat']['path'] }}"
+
+- name: Check pids
+  ansible.builtin.assert:
+    that:
+      - item['pids'] | length == 0
+    quiet: true
+  loop: "{{ service_pids['results'] }}"
+  loop_control:
+    label: "{{ item['invocation']['module_args']['name'] }}"

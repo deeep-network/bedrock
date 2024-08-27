@@ -1,0 +1,13 @@
+[Unit]
+Description=DeEEP Watchdog - installs, updates, and uninstalls Services
+Requires=deeep-services-watchdog.service
+
+[Timer]
+Unit=deeep-services-watchdog.service
+OnUnitInactiveSec=10min
+OnBootSec=10min
+RandomizedDelaySec=5min
+FixedRandomDelay=true
+
+[Install]
+WantedBy=timers.target

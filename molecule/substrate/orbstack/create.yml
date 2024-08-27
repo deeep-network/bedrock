@@ -2,12 +2,14 @@
 - name: Create
   hosts: localhost
   gather_facts: false
-  vars:
-    hostname: vm-9482.box.nerd-node.com
-    molecule_inventory:
-      molecule:
-        hosts: {}
   tasks:
+    # pulls templated cloud-init for local testing
+    - name: Create cloud-init file
+      ansible.builtin.template:
+        src: ../../../depin/utils/playbooks/templates/user-data.yml.j2
+        dest: ../cloud-init.yml
+        mode: '0644'
+
     - name: List Orb VMs
       ansible.builtin.command: orbctl list -f json
       changed_when: false
@@ -35,12 +37,6 @@
       loop: "{{ molecule_yml['platforms'] }}"
       loop_control:
         loop_var: platform
-
-    - name: Create cloud-init file
-      ansible.builtin.template:
-        src: ../../../depin/utils/playbooks/templates/user-data.yml.j2
-        dest: ../cloud-init.yml
-        mode: '0644'
 
     - name: Create Orb VM
       when: not _vm['exists']

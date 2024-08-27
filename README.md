@@ -1,8 +1,6 @@
-[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/deeep-network/ansible_collections/badge)](https://scorecard.dev/viewer/?uri=github.com/deeep-network/ansible_collections)
+![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/deeep-network/ansible_collections/badge)
 
-# DePIN Ansible Collection
-
-## installation
+# Development
 
 ### macos
 
@@ -18,9 +16,11 @@ apt install pipx
 
 > https://pipx.pypa.io/stable/installation/
 
+## install ansible
+
 ```bash
 pipx install ansible-core
-pipx inject ansible-core requests pyutils
+pipx inject ansible-core requests pynetbox pyutils pytz netaddr
 pipx install ansible-lint
 ```
 
@@ -28,13 +28,17 @@ pipx install ansible-lint
 pipx install --include-deps molecule
 ```
 
+```bash
+pipx install --include-deps ansible-sign
+```
+
 ## Molecule Setup
 
 ### linux/windows
 
-> intel Macs can also use this method
-
 1. install [multipass](https://multipass.run/install)
+
+> intel Macs can also use this method
 
 ### macos
 
@@ -44,7 +48,7 @@ pipx install --include-deps molecule
       brew install orbstack
     ```
 
-OR
+### experimental
 
 1. install [UTM](https://mac.getutm.app/)
 
@@ -52,37 +56,8 @@ OR
       brew install --cask utm
     ```
 
-2. update the playbooks under provisioner in `molecule/default/molecule.yml`
+2. set the `MOLECULE_SUBSTRATE` environment variable to the one of your choice
 
-    ```yaml
-    ...
-    provisioner:
-      name: ansible
-      playbooks:
-        create: ../substrate/<name>/create.yml
-        destroy: ../substrate/<name>/destroy.yml
-        prepare: ../substrate/<name>/prepare.yml
-      inventory:
-        links:
-          hosts: ../inventory/
-    ```
+> If you've already ran molecule before updating this variable you may need to use `molecule destroy` or `molecule reset` for it to take effect
 
-3. install required ansible collections
-
-    ```bash
-      ansible-galaxy install -r requirements.yml
-    ```
-
----
-
-> If you need to change something in `molecule/defualt/molecule.yml` use the following command
-
-```bash
-  git update-index --no-skip-worktree molecule/default/molecule.yml
-```
-
-once changed update git index for file again
-
-```bash
-  git update-index --skip-worktree molecule/default/molecule.yml
-```
+3. copy the `example.env` to `.env` and update with the required secrets

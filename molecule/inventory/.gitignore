@@ -1,4 +1,5 @@
 # Ignore everything in this directory
+# molecule_inventory will be development environment specific
 *
-# Except this file
+# Except these files
 !.gitignore

@@ -56,11 +56,6 @@ DOCUMENTATION = """
                 - Whether or not to validate SSL of the NetBox instance
             required: false
             default: true
-        raw_data:
-            type: bool
-            description:
-                - Whether to return raw API data with the lookup/query or whether to return a key/value dict
-            required: false
     requirements:
         - pynetbox
         - requests
@@ -97,7 +92,6 @@ tasks:
                     }',
                     token='<redacted>'),
                     validate_certs=False,
-                    raw_data=False,
                     session_key='<redacted>',
                     filter='assigned_object=<id>'
             }}"
@@ -271,7 +265,6 @@ class LookupModule(LookupBase):
             netbox_custom_headers = json.loads(netbox_custom_headers)
 
         netbox_ssl_verify = kwargs.get("validate_certs", True)
-        netbox_raw_return = kwargs.get("raw_data")
 
         netbox_filter = kwargs.get("filter")
         ## short circuit if passed in False for filter
@@ -347,9 +340,7 @@ class LookupModule(LookupBase):
                         
                         data = dict(nb_data)
                         Display().vvvvv(pformat(data))
-                        
-                        key = data["id"]
-                        return self._flatten_hash_to_list({key: data})
+                        return [data]
                     except pynetbox.RequestError as e:
                         raise AnsibleError(e.error)
 
@@ -363,12 +354,6 @@ class LookupModule(LookupBase):
             for data in nb_data:
                 data = dict(data)
                 Display().vvvvv(pformat(data))
-
-                if netbox_raw_return:
-                    results.append(data)
-                else:
-                    key = data["id"]
-                    result = {key: data}
-                    results.extend(self._flatten_hash_to_list(result))
+                results.append(data)
 
         return results

@@ -1,2 +1,3 @@
 ---
 inadyn_hostname: dev-test.nerdnode.io
+inadyn_cloudflare_token: "{{ lookup('ansible.builtin.env', 'INADYN_CLOUDFLARE_TOKEN') }}"

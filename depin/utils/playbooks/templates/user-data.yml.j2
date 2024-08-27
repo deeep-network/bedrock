@@ -29,9 +29,10 @@ users:
       - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOEu3Yh+xr+oNfcj72bcqcZNhg3D1SzeHh+BQKX4/05V anthony@nerdnode.io
 
 write_files:
-    - path: /etc/environment
+    - path: /etc/profile.d/pipx.sh
       append: true
       content: |
+        PATH=$HOME/.local/bin:$PATH
         export PIPX_HOME=/opt/pipx
         export PIPX_BIN_DIR=/usr/local/bin
 
@@ -39,4 +40,6 @@ runcmd:
   - [ env, PIPX_HOME=/opt/pipx, PIPX_BIN_DIR=/usr/local/bin, pipx, install, ansible-core, ansible-sign ]
   - [ env, PIPX_HOME=/opt/pipx, PIPX_BIN_DIR=/usr/local/bin, pipx, inject, ansible-core, psutil, netaddr, pytz, pynetbox ]
   - [ env, PIPX_HOME=/opt/pipx, PIPX_BIN_DIR=/usr/local/bin, pipx, ensurepath ]
-  - su - nerdnode -c "curl -s https://raw.githubusercontent.com/deeep-network/ansible_collections/main/depin/utils/playbooks/collections_install.yml | ansible-playbook /dev/stdin"
+  {% if not molecule_inventory is defined -%}
+  - su - nerdnode -c "curl -s https://raw.githubusercontent.com/deeep-network/ansible_collections/main/raw/playbooks/collections_install.yml | ansible-playbook /dev/stdin"
+  {% endif -%}

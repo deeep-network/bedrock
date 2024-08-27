@@ -9,9 +9,9 @@ platforms:
 provisioner:
   name: ansible
   playbooks:
-    create: ../substrate/orbstack/create.yml
-    destroy: ../substrate/orbstack/destroy.yml
-    prepare: ../substrate/orbstack/prepare.yml
+    create: ../substrate/${MOLECULE_SUBSTRATE:-kvm}/create.yml
+    destroy: ../substrate/${MOLECULE_SUBSTRATE:-kvm}/destroy.yml
   inventory:
     links:
       hosts: ../inventory/
+      group_vars: ../group_vars/

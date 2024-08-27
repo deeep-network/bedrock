@@ -1,4 +1,0 @@
-collections:
-  # directory containing the collection
-  - source: ./depin/libs
-    type: dir

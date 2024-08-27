@@ -3,6 +3,21 @@
   hosts: molecule
   gather_facts: true
   tasks:
-    - name: Testing {{ test_role | default('role') }}
+     # install (start)
+    - name: Install
       ansible.builtin.include_role:
         name: "{{ test_role | default('depin.utils.test') }}"
+        tasks_from: commands/install.yml
+
+    # reset - uninstall (stop) and install (start)
+    - name: Reset
+      ansible.builtin.include_role:
+        name: "{{ test_role | default('depin.utils.test') }}"
+        tasks_from: commands/reset.yml
+
+    # restart
+    - name: Restart
+      when: systemd_managed
+      ansible.builtin.include_role:
+        name: "{{ test_role | default('depin.utils.test') }}"
+        tasks_from: commands/restart.yml
