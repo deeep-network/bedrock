@@ -2,6 +2,9 @@
 - name: Deploy VM on LXD
   connection: local
   become: true
+  vars:
+    # cloud-init template requires generic hostname variable
+    hostname: "{{ lxd_vm_hostname }}"
   block:
     - name: Update default profile
       community.general.lxd_profile:
@@ -87,7 +90,7 @@
     - name: Re-run cloud-init on instance
       when:
         - deploy_vm is defined
-        - not deploy_vm is changed 
+        - not deploy_vm is changed
       vars:
         ansible_connection: lxd
         ansible_lxd_host: "{{ _short_vm_hostname }}"

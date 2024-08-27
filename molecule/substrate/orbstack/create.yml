@@ -3,7 +3,7 @@
   hosts: localhost
   gather_facts: false
   vars:
-    hostname: molecule.dev.nerd-node.com
+    hostname: vm-9482.box.nerd-node.com
     molecule_inventory:
       molecule:
         hosts: {}

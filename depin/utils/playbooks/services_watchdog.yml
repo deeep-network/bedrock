@@ -1,0 +1,51 @@
+---
+- name: Check for changes with services
+  hosts: localhost
+  gather_facts: true
+  tasks:
+    - name: Get last systemd timestamp
+      ansible.builtin.command: systemctl show deeep_service_watchdog -p ExecMainExitTimestamp --value
+      register: _systemd_timestamp
+
+    - name: Debugging
+      ansible.builtin.debug:
+        msg: "{{ _systemd_timestamp.stdout  }}"
+
+    - name: Get services that changed since last run (or last 30 minutes)
+      vars:
+        _id: "{{ lookup('pipe', 'hostname -s') | split('-') | last }}"
+        _now: "{{ '%a %Y-%m-%d %H:%M:%S %Z' | strftime(ansible_date_time.epoch | int - ('30m' | community.general.to_seconds)) }}"
+        _trigger: "{{ (_systemd_timestamp.stdout == 'n/a' or _systemd_timestamp.stdout == '') | ternary(_now, _systemd_timestamp.stdout) }}"
+        _formatted_trigger: "{{ (_trigger | to_datetime('%a %Y-%m-%d %H:%M:%S %Z') | default(_now)).isoformat() }}"
+        _filter: "changed_object_type=ipam.service time_after={{ _formatted_trigger }}"
+        _all_services: "{{ query('depin.libs.netbox', 'extras.object-changes', filter=_filter) }}"
+      ansible.builtin.debug:
+        msg:
+          - "{{ _id }}"
+          - "{{ _now }}"
+          - "{{ _trigger }}"
+          - "{{ _formatted_trigger }}"
+          - "{{ _filter }}"
+          - "{{ _all_services }}"
+    #   ansible.builtin.set_fact:
+    #     changed_services: |
+    #       {{
+    #         (_all_services | selectattr('postchange_data.virtual_machine', 'equalto', _id)) +
+    #         (_all_services | selectattr('prechange_data.virtual_machine', 'equalto', _id)) |
+    #         sort(attribute='id', reverse=true)
+    #       }}
+
+    # - name: Perform required changes
+    #   vars:
+    #     _type: "{{ _service['action']['value'] | extract({'delete': 'uninstall', 'create': 'install', 'update': 'update'}) }}"
+    #     _change_type: "{{ _type | extract({'uninstall': 'prechange_data'}) | default('postchange_data') }}"
+    #     _tag: "{{ _services[_change_type] | map('lower') | reject('contains', 'issue') | map('trim') | first }}"
+    #     service_name: "{{ _tag | split('-') | first }}"
+    #     service_workloads: "{{ _tag | split('-') | last | list }}"
+    #     mode: "{{ _type }}"
+    #   ansible.builtin.include_tasks:
+    #     file: tasks/safe_include_service.yml
+    #   loop: "{{ changed_services }}"
+    #   loop_control:
+    #     label: "{{ _service['id'] }}"
+    #     loop_var: _service

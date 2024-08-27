@@ -116,10 +116,21 @@
     - name: Install ansible
       ansible.builtin.shell: |
         pipx install ansible-core ansible-sign
-        pipx inject ansible-core psutil
-        pipx ensurepath
       args:
         creates: /opt/pipx/venvs/ansible-core
+      changed_when: false
+
+    - name: Install ansible sign
+      ansible.builtin.shell: |
+        pipx install ansible-sign
+      args:
+        creates: /opt/pipx/venvs/ansible-sign
+      changed_when: false
+
+    - name: Install ansible dependencies
+      ansible.builtin.shell: |
+        pipx inject ansible-core psutil netaddr pytz pynetbox
+        pipx ensurepath
       changed_when: false
 
     - name: Create Ansible log directory
@@ -167,7 +178,7 @@
   become_user: nerdnode
   become_flags: "-i"
   tasks:
-    # @todo - upgrade to openpubkey  or BastionZero
+    # @todo - upgrade to openpubkey or BastionZero
     - name: Install authorized keys
       ansible.builtin.blockinfile:
         dest: ~/.ssh/authorized_keys
@@ -181,14 +192,14 @@
 
     - name: Fetch install collections playbook
       ansible.builtin.uri:
-        url: https://raw.githubusercontent.com/deeep-network/ansible_collections/main/depin/utils/playbooks/install_collections.yml
+        url: https://raw.githubusercontent.com/deeep-network/ansible_collections/main/depin/utils/playbooks/collections_install.yml
         return_content: true
-      register: _install_collections
+      register: _collections_install
 
     - name: Run install collections playbook
       ansible.builtin.command:
         cmd: ansible-playbook /dev/stdin
         creates: ~/.ansible/collections/ansible_collections/depin
-        stdin: "{{ _install_collections.content }}"
-      register: _install_collections_results
-      changed_when: (_install_collections_results.stdout | regex_search('changed=(\\d+)', '\\1') | first) | int > 0
+        stdin: "{{ _collections_install.content }}"
+      register: _collections_install_results
+      changed_when: (_collections_install_results.stdout | regex_search('changed=(\\d+)', '\\1') | first) | int > 0
