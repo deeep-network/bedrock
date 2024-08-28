@@ -35,6 +35,8 @@ source ~/.bashrc
 echo $PATH
 sudo apt-get install libvirt-dev python3-libvirt
 sudo apt-get install python3-lxml
+sudo snap install lxd
+
 
 ```bash
 pipx install --include-deps molecule
@@ -83,6 +85,7 @@ OR
 
     ```bash
       ansible-galaxy install -r requirements.yml
+      ansible-galaxy collection install community.general
     ```
 
 ---

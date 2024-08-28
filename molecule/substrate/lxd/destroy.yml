@@ -1,0 +1,38 @@
+---
+- name: Destroy LXD containers
+  hosts: localhost
+  gather_facts: false
+  connection: local
+  vars:
+    molecule_yml:
+      platforms:
+        - name: instance
+          image: ubuntu:20.04
+          user: ansible
+
+  tasks:
+    - name: Check if LXD container exists
+      command: lxc list "{{ platform['name'] }}" --format=json
+      register: lxd_container_info
+      ignore_errors: true
+      loop: "{{ molecule_yml['platforms'] }}"
+      loop_control:
+        loop_var: platform
+
+    - name: Debug container existence
+      ansible.builtin.debug:
+        var: lxd_container_info
+
+    - name: Destroy LXD containers if exists
+      community.general.lxd_container:
+        name: "{{ platform['name'] }}"
+        state: absent
+      when: lxd_container_info.results[0].stdout != '[]'
+      loop: "{{ molecule_yml['platforms'] }}"
+      loop_control:
+        loop_var: platform
+
+    - name: Remove molecule_inventory file
+      ansible.builtin.file:
+        path: ../../inventory/molecule_inventory.yml
+        state: absent
