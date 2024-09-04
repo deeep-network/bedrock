@@ -1,0 +1,44 @@
+---
+- name: Restart node
+  become: true
+  ansible.builtin.systemd_service:
+    name: "{{ item }}"
+    daemon_reload: true
+    enabled: true
+    state: restarted
+  loop: "{{ storagechain_programs }}"
+
+- name: Assert
+  when: "'molecule' in groups"
+  block:
+    - name: Get service facts
+      ansible.builtin.service_facts:
+    
+    - name: Check service facts
+      vars:
+        _name: storagechain.service
+        # _name: "{{ item }}.service"
+      ansible.builtin.assert:
+        that:
+          - ansible_facts['services'][_name] is defined
+          - ansible_facts['services'][_name]['state'] == 'running'
+          - ansible_facts['services'][_name]['status'] == 'enabled'
+        quiet: true
+      # loop: "{{ storagechain_programs }}"
+
+    - name: Get service start time
+      become: true
+      ansible.builtin.command: systemctl show -p ActiveEnterTimestamp --value {{ item }}.service
+      loop: "{{ storagechain_programs }}"
+      register: _systemd_timestamps
+
+    - name: Check if restarted within 1m
+      vars:
+        _start: "{{ (item['stdout'] | to_datetime('%a %Y-%m-%d %H:%M:%S %Z')).strftime('%s') }}"
+      ansible.builtin.assert:
+        that: 
+          - (ansible_date_time.epoch | int - _start | int) < 60
+        quiet: true
+      loop: "{{ _systemd_timestamps['results'] }}"
+      loop_control:
+        label: "{{ item['cmd'] | last }}"

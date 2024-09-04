@@ -1,8 +1,8 @@
 #jinja2: trim_blocks:False
 [Unit]
 Description=IPFS Cluster Follow
-After=network.target
-Requires=ipfs.service
+After=network.target ipfs.service
+Upholds=ipfs.service
 
 [Service]
 User=ipfs

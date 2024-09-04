@@ -1,0 +1,4 @@
+---
+- name: {{ role_name | replace('_', ' ') | capitalize }} {{ '{{ service_cmd | default(' }}{{ role_name }}{{ '_cmd) }}' }}
+  ansible.builtin.include_tasks:
+    file: commands/{{ '{{ service_cmd | default(' }}{{ role_name }}{{ '_cmd) }}' }}.yml

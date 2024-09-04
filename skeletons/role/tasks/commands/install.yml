@@ -1,2 +1,15 @@
 ---
-## install dependencies and start service
+## install dependencies and service
+
+- name: Start
+  ansible.builtin.include_tasks: commands/start.yml
+
+# relative to playbook (molecule - default)
+- name: Assert Install
+  when: "'molecule' in groups"
+  block:
+    - name: Common install asserts
+      ansible.builtin.include_tasks:
+        file: tasks/asserts_install.yml
+
+    # unique asserts go here

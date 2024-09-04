@@ -1,0 +1,10 @@
+- name: Run tasks for Services
+  hosts: localhost
+  gather_facts: true
+  vars:
+    _hostname: "{{ lookup('pipe', 'hostname -s') }}"
+    _filter: "virtual_machine_id={{ _hostname | split('-') | last }}"
+    _services: "{{ query('depin.libs.netbox', 'ipam.services', filter=_filter) }}"
+  tasks:
+    - ansible.builtin.include_role:
+        name: depin.utils.services

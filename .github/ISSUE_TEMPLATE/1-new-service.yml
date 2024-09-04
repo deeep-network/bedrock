@@ -1,5 +1,5 @@
 name: New Service
-description: Issue to track the completion of a New Service
+description: Track the completion of a New Service
 title: "[New]: "
 labels: ["new", "enhancement", "service"]
 projects: ["deeep-network/1", "deeep-network/4"]
@@ -12,7 +12,7 @@ body:
     id: contact
     attributes:
       label: Discord (Github) Handle
-      description: How can we get in touch with you if we need more info?
+      description: How can we get in touch with you if we need to?
       placeholder: ex. @anthonyra
     validations:
       required: false
@@ -23,17 +23,10 @@ body:
       options:
       - label: I have searched the existing issues
         required: true
-  - type: checkboxes
-    attributes:
-      label: Have you discussed this in the Discord yet?
-      description: Not required but getting additional discussion on the Service will help.
-      options:
-      - label: I have discussed this in the [Discord](https://discord.gg/deeep-network)
-        required: false
   - type: input
-    id: discord-link
+    id: discord-discussion
     attributes:
-      label: Discord Link
+      label: Discord Discussion
       description: Please provide a Message Link to the Discord discussion or thread.
       placeholder: ex. https://discord.com/channels/1009533970771349554/1011331602174988379/1011359420137095268
     validations:
@@ -66,16 +59,16 @@ body:
         ### Commands
         Ensure all of the listed commands are implemented for the New Service.
 
-        - [ ] install
+        - [ ] install (update)
         - [ ] start
         - [ ] stop
         - [ ] restart
-        - [ ] update
         - [ ] uninstall
+        - [ ] reset
 
         ### Metrics
 
-        - [ ] custom Prometheus collector is provided (as necessary)
+        - [ ] custom Prometheus collector (as necessary)
         > Not required if Service provides a prometheus endpoint that exposes the following
           minimum requirements:
             - status
@@ -88,7 +81,7 @@ body:
         ### 'galaxy.yml'
 
         - [ ] updated version by one minor step (1.0.0 => 1.1.0)
-        > New Services should never create breaking changes but adds new features
+        > New Services should never create breaking changes but only adds new features
 
         - [ ] dependencies are updated for required collections
 

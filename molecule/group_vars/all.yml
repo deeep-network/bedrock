@@ -1,0 +1,4 @@
+hostname: vm-9482.box.nerd-node.com
+molecule_inventory:
+  molecule:
+    hosts: {}

@@ -1,0 +1,4 @@
+---
+- name: Install test
+  ansible.builtin.debug:
+    msg: "testing the install tasks"

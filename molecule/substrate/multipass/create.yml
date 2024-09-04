@@ -2,10 +2,6 @@
 - name: Create
   hosts: localhost
   gather_facts: false
-  vars:
-    molecule_inventory:
-      molecule:
-        hosts: {}
   tasks:
     - name: Create cloud-init file
       ansible.builtin.template:
