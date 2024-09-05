@@ -6,7 +6,7 @@
     service_data: "{{ notdefined | mandatory }}"
   block:
     - name: Get Netbox Session Key
-      depin.libs.netbox_secrets_session_key:
+      depin.libs.netbox_secrets:
 
     - name: Get credentials and VM details
       vars:

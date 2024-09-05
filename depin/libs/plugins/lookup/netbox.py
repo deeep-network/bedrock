@@ -228,6 +228,11 @@ class LookupModule(LookupBase):
     """
 
     def run(self, terms, variables=None, **kwargs):
+        Display().vvvv(
+            "NetBox lookup for %s with %s"
+            % (terms, kwargs)
+        )
+
         if PYNETBOX_LIBRARY_IMPORT_ERROR:
             raise_from(
                 AnsibleError("pynetbox must be installed to use this plugin"),
@@ -266,7 +271,10 @@ class LookupModule(LookupBase):
 
         netbox_ssl_verify = kwargs.get("validate_certs", True)
 
-        netbox_filter = kwargs.get("filter")
+        netbox_filter = (
+            kwargs.get("filter")
+            or kwargs.get("filters")
+        )
         ## short circuit if passed in False for filter
         if netbox_filter == False:
             return []

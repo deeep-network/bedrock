@@ -6,5 +6,6 @@
     _filter: "virtual_machine_id={{ _hostname | split('-') | last }}"
     _services: "{{ query('depin.libs.netbox', 'ipam.services', filter=_filter) }}"
   tasks:
-    - ansible.builtin.include_role:
+    - name: Install required services
+      ansible.builtin.include_role:
         name: depin.utils.services

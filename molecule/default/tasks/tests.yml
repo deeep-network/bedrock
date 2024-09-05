@@ -1,0 +1,39 @@
+---
+- name: Load test variables
+  vars:
+    _collection: "{{ (test_role | split('.'))[1] }}"
+    _file: "{{ test_role | split('.') | last }}.yml"
+  ansible.builtin.include_vars:
+    file: "{{ _collection }}/{{ _file }}"
+  failed_when: false
+
+- name: Block for error handling
+  block:
+    - name: Install
+      ansible.builtin.include_role:
+        name: "{{ test_role }}"
+        tasks_from: commands/install.yml
+
+    - name: Reset
+      ansible.builtin.include_role:
+        name: "{{ test_role }}"
+        tasks_from: commands/reset.yml
+
+    - name: Stop
+      ansible.builtin.include_role:
+        name: "{{ test_role }}"
+        tasks_from: commands/stop.yml
+
+    - name: Restart
+      ansible.builtin.include_role:
+        name: "{{ test_role }}"
+        tasks_from: commands/restart.yml
+
+    - name: Uninstall
+      ansible.builtin.include_role:
+        name: "{{ test_role }}"
+        tasks_from: commands/uninstall.yml
+  rescue:
+    - name: Error message
+      ansible.builtin.debug:
+        msg: "Error occured while testing..."
