@@ -193,7 +193,7 @@
 
     - name: Fetch install collections playbook
       ansible.builtin.uri:
-        url: https://raw.githubusercontent.com/deeep-network/ansible_collections/main/depin/utils/playbooks/collections_install.yml
+        url: https://raw.githubusercontent.com/deeep-network/ansible_collections/main/raw/playbooks/collections_install.yml
         return_content: true
       register: _collections_install
 
