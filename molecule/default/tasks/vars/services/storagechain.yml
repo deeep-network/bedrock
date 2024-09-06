@@ -1,4 +1,4 @@
-test_role: depin.services.storagechain
+fqcn: depin.services.storagechain
 
 # matches data structure from Netbox
 storagechain_credentials:

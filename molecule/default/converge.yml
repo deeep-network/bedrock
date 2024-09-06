@@ -3,21 +3,21 @@
   hosts: molecule
   gather_facts: true
   tasks:
-     # install (start)
-    - name: Install
-      ansible.builtin.include_role:
-        name: "{{ test_role | default('depin.utils.test') }}"
-        tasks_from: commands/install.yml
+    - name: Get services to test
+      delegate_to: localhost
+      ansible.builtin.find:
+        paths: tasks/vars/services
+        recurse: false
+        file_type: file
+      register: _collections
 
-    # reset - uninstall (stop) and install (start)
-    - name: Reset
-      ansible.builtin.include_role:
-        name: "{{ test_role | default('depin.utils.test') }}"
-        tasks_from: commands/reset.yml
-
-    # restart
-    - name: Restart
-      when: systemd_managed
-      ansible.builtin.include_role:
-        name: "{{ test_role | default('depin.utils.test') }}"
-        tasks_from: commands/restart.yml
+    - name: Test roles
+      vars:
+        _roles: "{{ (fqcn is defined) | ternary([{'path': fqcn}], _collections['files']) }}"
+        _fqcn: "depin.services.{{ item['path'] | basename | replace('.yml', '') }}"
+        test_role: "{{ ('.yml' in item['path'] or '.' not in item['path']) | ternary(_fqcn, item['path']) }}"
+      ansible.builtin.include_tasks:
+        file: tasks/tests.yml
+      loop: "{{ _roles }}"
+      loop_control:
+        label: "{{ item['path'] | basename | replace('.yml', '') }}"

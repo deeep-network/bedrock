@@ -1,9 +1,9 @@
 ---
-deb_architecture: {
-    "aarch64": "arm64",
-    "x86_64": "amd64",
-    "arm": "arm",
-    "i386": "386"
-}
+deb_architecture: # noqa var-naming[no-role-prefix]
+  aarch64: arm64
+  x86_64: amd64
+  arm: arm
+  i386: "386"
 
-system_architecture: "{{ [ansible_architecture] | map('extract', deb_architecture) | first }}"
+system_architecture: |- # noqa var-naming[no-role-prefix]
+  {{ [ansible_architecture] | map('extract', deb_architecture) | first }}

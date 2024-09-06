@@ -2,6 +2,8 @@
 
 # Development
 
+## Install pipx
+
 ### macos
 
 ```bash
@@ -16,7 +18,7 @@ apt install pipx
 
 > https://pipx.pypa.io/stable/installation/
 
-## install ansible
+## Install Ansible
 
 ```bash
 pipx install ansible-core
@@ -25,14 +27,14 @@ pipx install ansible-lint
 ```
 
 ```bash
-pipx install --include-deps molecule
-```
-
-```bash
 pipx install --include-deps ansible-sign
 ```
 
 ## Molecule Setup
+
+```bash
+pipx install --include-deps molecule
+```
 
 ### linux/windows
 
@@ -56,8 +58,34 @@ pipx install --include-deps ansible-sign
       brew install --cask utm
     ```
 
+## Using Molecule
+
+---
+
 2. set the `MOLECULE_SUBSTRATE` environment variable to the one of your choice
 
-> If you've already ran molecule before updating this variable you may need to use `molecule destroy` or `molecule reset` for it to take effect
+    > If you've already ran molecule before updating this variable you may need to use `molecule destroy` or `molecule reset` for it to take effect
 
-3. copy the `example.env` to `.env` and update with the required secrets
+3. copy the `example.env` to `.env` and update the contents
+
+4. test all services with a file in default/tasks/vars/services
+
+    ```bash
+    molecule converge
+    ```
+
+5. test a specific service role
+
+    ```bash
+    molecule converge -- -e='fqcn=test.yml'
+    molecule converge -- -e='fqcn=test'
+    molecule converge -- -e='fqcn=depin.services.test'
+    molecule converge -- -e=@tasks/vars/services/test.yml
+    ```
+
+6. test any collection role
+
+    ```bash
+    molecule converge -- -e='fqcn=depin.libs.test'
+    molecule converge -- -e=@tasks/vars/libs/test.yml
+    ```

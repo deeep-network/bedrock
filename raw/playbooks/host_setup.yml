@@ -200,7 +200,13 @@
     - name: Run install collections playbook
       ansible.builtin.command:
         cmd: ansible-playbook /dev/stdin
-        creates: ~/.ansible/collections/ansible_collections/depin
         stdin: "{{ _collections_install.content }}"
-      register: _collections_install_results
-      changed_when: (_collections_install_results.stdout | regex_search('changed=(\\d+)', '\\1') | first) | int > 0
+      register: _install_results
+      changed_when: (_install_results.stdout | regex_search('changed=(\\d+)', '\\1') | first) | int > 0
+
+    # lazy attempt to use installed collection since raw
+    - name: Update Netbox
+      ansible.builtin.command:
+        cmd: ansible-playbook depin.utils.netbox_update
+      changed_when: false
+      failed_when: false
