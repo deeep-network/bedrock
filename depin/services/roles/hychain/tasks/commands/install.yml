@@ -1,43 +1,79 @@
 ---
-- name: Update&Upgrade
-  ansible.builtin.apt:
-    name: aptitude
-    state: present
-    update_cache: true
-
+## install dependencies and start service
+---
 - name: Install dependencies
   ansible.builtin.apt:
     name:
-      - git
+      - zip
     state: present
     update_cache: true
 
-- name: Clone a repo with separate git directory
-  ansible.builtin.git:
-    repo: https://github.com/HYCHAIN/guardian-node-software.git
-    dest: /home/hychain
-    single_branch: yes
-    version: main
+- name: Create program folder
+  become: true
+  ansible.builtin.file:
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+    dest: /opt/hychain/{{ hychain_version }}
+
+- name: Download binary to tmp
+  ansible.builtin.get_url:
+    url: "{{ hychain_download_url }}"
+    dest: /tmp/hychain_service_{{ hychain_version }}.zip
+
+
+- name: Find binary
+  become: true
+  ansible.builtin.find:
+    paths:
+      - /tmp
+      - "{{ hychain_download_path | default('/tmp') }}"
+    patterns: 'hychain_service_{{ hychain_version }}.zip$'
+    use_regex: true
+    get_checksum: true
+    recurse: true
+  register: _download
+
+- name: Extract binary
+  become: true
+  ansible.builtin.unarchive:
+    src: /tmp/hychain_service_{{ hychain_version }}.zip
+    dest: /opt/hychain/{{ hychain_version }}
+    remote_src: yes
 
 - name: Copy start file
   ansible.builtin.copy:
     content: |
       #!/bin/bash
-      cd /home/hychain/cli/linux/
-      ./guardian-cli-linux guardian run {{ hychain_code }} --loop-interval-ms 3600000
-    dest: /home/hychain/cli/linux/hychain-start.sh
+      cd /opt/hychain/{{ hychain_version }}/guardian-node-software-main/cli/linux/
+      ./guardian-cli-linux guardian run {{ hychain_private_key }} 
+    dest: /opt/hychain/{{ hychain_version }}/guardian-node-software-main/cli/linux/hychain-start.sh
 
-- name: Hychain service file
+- name: Create systemd file
   ansible.builtin.copy:
-    src: ../files/hychain.service
+    content: |
+      [Unit]
+      Description=hychain service
+      After=network.target 
+ 
+      [Service]
+      User=root
+      Group=root
+      Type=simple
+      ExecStart=/bin/bash /opt/hychain/{{ hychain_version }}/guardian-node-software-main/cli/linux/hychain-start.sh
+      Restart=always
+      RestartSec=5
+      RuntimeMaxSec=6h
+      PIDFile=/tmp/hychain.pid
+ 
+      [Install]
+      WantedBy=multi-user.target 
     dest: /etc/systemd/system/hychain.service
-
-- name: Enable service hychain.service
-  ansible.builtin.service:
-    name: hychain.service
-    enabled: yes
-
+  
 - name: Start service hychain.service, if not started
-  ansible.builtin.service:
-    name: hychain.service
+  ansible.builtin.systemd_service:
+    name: hychain
     state: started
+    enabled: true
+    daemon_reload: true
