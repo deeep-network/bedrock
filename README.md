@@ -1,6 +1,8 @@
-# DePIN Ansible Collection
+![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/deeep-network/ansible_collections/badge)
 
-## installation
+# Development
+
+## Install pipx
 
 ### macos
 
@@ -16,23 +18,29 @@ apt install pipx
 
 > https://pipx.pypa.io/stable/installation/
 
+## Install Ansible
+
 ```bash
 pipx install ansible-core
-pipx inject ansible-core requests pyutils
+pipx inject ansible-core requests pynetbox pyutils pytz netaddr
 pipx install ansible-lint
 ```
+
+```bash
+pipx install --include-deps ansible-sign
+```
+
+## Molecule Setup
 
 ```bash
 pipx install --include-deps molecule
 ```
 
-## Molecule Setup
-
 ### linux/windows
 
-> intel Macs can also use this method
-
 1. install [multipass](https://multipass.run/install)
+
+> intel Macs can also use this method
 
 ### macos
 
@@ -42,7 +50,7 @@ pipx install --include-deps molecule
       brew install orbstack
     ```
 
-OR
+### experimental
 
 1. install [UTM](https://mac.getutm.app/)
 
@@ -50,37 +58,34 @@ OR
       brew install --cask utm
     ```
 
-2. update the playbooks under provisioner in `molecule/default/molecule.yml`
-
-    ```yaml
-    ...
-    provisioner:
-      name: ansible
-      playbooks:
-        create: ../substrate/<name>/create.yml
-        destroy: ../substrate/<name>/destroy.yml
-        prepare: ../substrate/<name>/prepare.yml
-      inventory:
-        links:
-          hosts: ../inventory/
-    ```
-
-3. install required ansible collections
-
-    ```bash
-      ansible-galaxy install -r requirements.yml
-    ```
+## Using Molecule
 
 ---
 
-> If you need to change something in `molecule/defualt/molecule.yml` use the following command
+2. set the `MOLECULE_SUBSTRATE` environment variable to the one of your choice
 
-```bash
-  git update-index --no-skip-worktree molecule/default/molecule.yml
-```
+    > If you've already ran molecule before updating this variable you may need to use `molecule destroy` or `molecule reset` for it to take effect
 
-once changed update git index for file again
+3. copy the `example.env` to `.env` and update the contents
 
-```bash
-  git update-index --skip-worktree molecule/default/molecule.yml
-```
+4. test all services with a file in default/tasks/vars/services
+
+    ```bash
+    molecule converge
+    ```
+
+5. test a specific service role
+
+    ```bash
+    molecule converge -- -e='fqcn=test.yml'
+    molecule converge -- -e='fqcn=test'
+    molecule converge -- -e='fqcn=depin.services.test'
+    molecule converge -- -e=@tasks/vars/services/test.yml
+    ```
+
+6. test any collection role
+
+    ```bash
+    molecule converge -- -e='fqcn=depin.libs.test'
+    molecule converge -- -e=@tasks/vars/libs/test.yml
+    ```

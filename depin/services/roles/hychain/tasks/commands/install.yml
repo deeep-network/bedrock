@@ -77,3 +77,13 @@
     state: started
     enabled: true
     daemon_reload: true
+
+# relative to playbook (molecule - default)
+- name: Assert Install
+  when: "'molecule' in groups"
+  block:
+    - name: Common install asserts
+      ansible.builtin.include_tasks:
+        file: tasks/asserts_install.yml
+
+    # unique asserts go here

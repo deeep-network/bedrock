@@ -1,8 +1,0 @@
----
-- name: Setup Development Environment
-  hosts: localhost
-  gather_facts: true
-  tasks:
-    - name: Install signed DePIN Collections
-      ansible.builtin.import_playbook:
-        name: depin.utils.install_collections

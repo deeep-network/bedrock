@@ -1,0 +1,11 @@
+[Unit]
+Description=DeEEP Watchdog - installs, updates, and uninstalls Services
+Wants=deeep-services-watchdog.timer
+
+[Service]
+Type=oneshot
+User=nerdnode
+ExecStart=/usr/bin/bash -lc "ansible-playbook depin.utils.services -e='services_task=get_changes'"
+
+[Install]
+WantedBy=multi-user.target

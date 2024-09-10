@@ -1,0 +1,92 @@
+---
+- name: Prepare
+  hosts: molecule
+  gather_facts: false
+  tasks:
+    - name: Copy over .env file
+      become: true
+      ansible.builtin.blockinfile:
+        block: "{{ lookup('ansible.builtin.file', '../.env') }}"
+        path: /etc/environment
+        backup: true
+
+    ## cloud-init installs the latest signed collection via github
+    # we need to make sure we install the local version for tests
+    - name: Build collection packages
+      delegate_to: localhost
+      block:
+        - name: Find collections
+          ansible.builtin.find:
+            paths: ../../depin
+            recurse: false
+            file_type: directory
+          register: _collections
+
+        - name: Ensure build directory exists
+          ansible.builtin.file:
+            path: "{{ playbook_dir }}/build/"
+            state: "{{ item }}"
+            mode: '0755'
+          loop:
+            - absent
+            - directory
+
+        - name: Build local collections
+          ansible.builtin.command: ansible-galaxy collection build --output-path={{ playbook_dir }}/build --force
+          args:
+            chdir: "{{ _file['path'] }}"
+          changed_when: false
+          loop: "{{ _collections['files'] }}"
+          loop_control:
+            label: "{{ _file['path'] }}"
+            loop_var: _file
+
+        - name: Create collections list for requirements file
+          vars:
+            _glob: "{{ playbook_dir }}/build/*.tar.gz"
+            _name: "{{ _file | basename }}"
+          ansible.builtin.set_fact:
+            _tarballs: "{{ _tarballs | default([]) + [{'name': _name}] }}"
+          loop: "{{ query('fileglob', _glob) }}"
+          loop_control:
+            loop_var: _file
+            label: "{{ _file | basename }}"
+
+        - name: Create local requirements file
+          vars:
+            _requirements:
+              collections: "{{ _tarballs }}"
+          ansible.builtin.copy:
+            content: "{{ _requirements | to_nice_yaml(indent=2) }}"
+            dest: "{{ playbook_dir }}/build/requirements.yml"
+            mode: '0644'
+
+    - name: Ensure collection directory exists
+      become: true
+      ansible.builtin.file:
+        path: /opt/deeep-network/ansible-collections
+        state: directory
+        mode: '0755'
+
+    - name: Copy build folder over
+      vars:
+        _glob: "{{ playbook_dir }}/build/*"
+      become: true
+      ansible.builtin.copy:
+        src: "{{ _file }}"
+        dest: /opt/deeep-network/ansible-collections
+        mode: '0644'
+      loop: "{{ query('fileglob', _glob) }}"
+      loop_control:
+        loop_var: _file
+        label: "{{ _file | basename }}"
+
+    - name: Install collections
+      become: true
+      become_user: nerdnode
+      become_flags: '-i'
+      ansible.builtin.command:
+        chdir: /opt/deeep-network/ansible-collections
+        cmd: ansible-galaxy install -r requirements.yml --force
+      register: ansible_galaxy_install
+      changed_when: "'Nothing to do' not in ansible_galaxy_install.stdout"

@@ -1,0 +1,25 @@
+fqcn: depin.services.storagechain
+
+# matches data structure from Netbox
+storagechain_credentials:
+  custom_fields:
+    custom_name: nn-test-20tb
+    dns: tntnebbt2t.sc.nerdnode.io
+    nodeid: 66a7eccdc5e29b97a6b41d09
+    username: anthony@nerdnode.io
+  plaintext: U2FsdGVkX1+q/LcwM0AbozAr2rPlonirGTtntUb6+Ziq8uziEIlXGous2wmlS55JAVLbENSOp92etQ07Ad/yB91UGgBRHZsrNJ4yh8qkfzU=
+
+service_vm:
+  disk: 20000
+
+service_data:
+  protocol:
+    value: tcp
+  ports:
+    - 3008
+    - 4001
+    - 5001
+    - 8080
+    - 9094
+    - 9095
+    - 9096

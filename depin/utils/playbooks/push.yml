@@ -1,9 +1,0 @@
----
-- name: Setup LXD Host
-  hosts: localhost
-  gather_facts: true
-  become: true
-  tasks:
-    - name: Blank
-      ansible.builtin.debug:
-        msg: "blank"

@@ -1,0 +1,32 @@
+---
+- name: Block for error handling
+  vars:
+    service_name: "{{ notdefined | mandatory }}"
+    service_workloads: "{{ notdefined | mandatory }}"
+    service_data: "{{ notdefined | mandatory }}"
+  block:
+    - name: Get Netbox Session Key
+      depin.libs.netbox_secrets:
+
+    - name: Get credentials and VM details
+      vars:
+        _vm_id: "{{ service_data['virtual_machine']['id'] }}"
+        _filter: virtual_machine_id={{ _vm_id }}
+        # @todo - will be deprecated
+        _attached: "{{ lookup('depin.libs.netbox', 'plugins.secrets.secrets', filter=_filter) | default(none) }}"
+        # @todo - will be deprecated
+        _api_key: "{{ service_data['custom_fields']['api_key'] | default(none) }}"
+        _credentials: "{{ service_data['custom_fields']['credentials'] | default(none) }}"
+        _id: "{{ _credentials['id'] | default(_api_key['id']) }}"
+        _secret: "{{ lookup('depin.libs.netbox', 'plugins.secrets.secrets', filter=_id) | default(_attached) }}"
+      ansible.builtin.set_fact:
+        service_vm: "{{ lookup('depin.libs.netbox', 'virtualization.virtual-machines', filter=_vm_id) | default([]) }}"
+        service_credentials: "{{ _secret | default([]) }}"
+
+    - name: Run service role
+      ansible.builtin.include_role:
+        name: depin.services.{{ service_name }}
+  rescue:
+    - name: Continue on error
+      ansible.builtin.debug:
+        msg: "Issue during {{ service_name }} with {{ service_workloads }}..."

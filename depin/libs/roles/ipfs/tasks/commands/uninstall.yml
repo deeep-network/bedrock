@@ -1,0 +1,19 @@
+---
+- name: Disable systemd service
+  become: true
+  ansible.builtin.systemd_service:
+    name: ipfs
+    enabled: false
+    state: stopped
+
+- name: Uninstall
+  become: true
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: absent
+    force: true
+  loop:
+    - /usr/local/bin/ipfs
+    - /opt/ipfs
+    - $HOME/.ipfs
+    - /etc/systemd/system/ipfs.service

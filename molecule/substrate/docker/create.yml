@@ -2,11 +2,6 @@
 - name: Create
   hosts: localhost
   gather_facts: false
-  vars:
-    molecule_inventory:
-      all:
-        hosts: {}
-        molecule: {}
   tasks:
     - name: Build image
       community.docker.docker_image:

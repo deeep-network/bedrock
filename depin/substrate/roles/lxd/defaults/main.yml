@@ -1,8 +1,14 @@
 ---
-lxd_hostname: "{{ lookup('ansible.builtin.pipe', 'hostname -s') }}"
-lxd_default_hostname: vm-{{ vm_id }}.box.nerd-node.com
-lxd_vm_hostname: "{{ hostname | default(lxd_default_hostname) }}"
-
-lxd_vm_ipv4_address: "{{ ansible_default_ipv4['address'] | default(omit) }}"
+lxd_vm_default_hostname: vm-{{ lxd_vm['id'] }}.box.nerd-node.com
+lxd_vm_hostname: "{{ vm_hostname | default(lxd_vm_default_hostname) }}"
+lxd_vm_short_hostname: "{{ lxd_vm_hostname | split('.') | first }}"
 
 lxd_vm_image: "22.04"
+lxd_vm_ipv4_address: "{{ lxd_vm['primary_ip']['address'] | default('') | split('/') | first }}"
+lxd_vm_public_ipv4_address: "{{ lxd_vm_ipv4_address | ansible.utils.ipaddr('public') }}"
+
+lxd_vm_vcpus: "{{ lxd_vm['vcpus'] | int }}"
+lxd_vm_memory: "{{ (lxd_vm['memory'] | int >= 1024) | ternary(lxd_vm['memory'] | int, '1024') }}MiB"
+lxd_vm_disk: "{{ lxd_vm['disk'] | int }}GiB"
+
+lxd_vm_recreate: false

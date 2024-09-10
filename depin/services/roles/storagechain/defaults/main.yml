@@ -1,4 +1,22 @@
 ---
+storagechain_cmd: install
+storagechain_credentials: "{{ service_credentials }}"
+storagechain_programs:
+  - storagechain
+  - ipfs
+  - ipfs-cluster-follow
+
 storagechain_download_url: https://file-view-prod.storagechain.io/api/file/download/tUwAr7cF5QiPJnIZ35Vq0UXSqpgFuN0c
+storagechain_ipfs_checksum: 47af81af0c1c0aeb26e879cf3b5e548ae9a9ff56
+storagechain_ipfs_cluster_follow_checksum: 144ae74c02d86be5c13c38c6da4358f4769de842
+
+storagechain_version: "{{ storagechain_download_url | basename }}"
 storagechain_ipfs_cluster_args: "{{ storagechain_email }}:{{ storagechain_password }}:{{ storagechain_node_id }}"
-storagechain_dns: "{{ storagechain_node_id }}.sc.nerdnode.io"
+storagechain_default_dns: "{{ storagechain_node_id }}.sc.nerdnode.io"
+
+storagechain_node_name: "{{ storagechain_credentials['custom_fields']['custom_name'] }}"
+storagechain_node_id: "{{ storagechain_credentials['custom_fields']['nodeid'] }}"
+storagechain_email: "{{ storagechain_credentials['custom_fields']['username'] }}"
+storagechain_dns: "{{ storagechain_credentials['custom_fields']['dns'] | default(storagechain_default_dns) }}"
+storagechain_password: "{{ storagechain_credentials['plaintext'] }}"
+storagechain_node_size: "{{ service_vm['disk'] }}GB"
