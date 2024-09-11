@@ -1,6 +1,5 @@
 ---
 ## install dependencies and start service
----
 - name: Install dependencies
   ansible.builtin.apt:
     name:
