@@ -1,6 +1,7 @@
 ---
 ## stop and start service
 - name: Restarted node
+  become: true
   ansible.builtin.service:
     name: hychain.service
     state: restarted

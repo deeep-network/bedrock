@@ -1,7 +1,7 @@
 ---
 ## install dependencies and start service
----
 - name: Install dependencies
+  become: true
   ansible.builtin.apt:
     name:
       - zip
@@ -43,6 +43,7 @@
     remote_src: yes
 
 - name: Copy start file
+  become: true
   ansible.builtin.copy:
     content: |
       #!/bin/bash
@@ -51,6 +52,7 @@
     dest: /opt/hychain/{{ hychain_version }}/guardian-node-software-main/cli/linux/hychain-start.sh
 
 - name: Create systemd file
+  become: true
   ansible.builtin.copy:
     content: |
       [Unit]
@@ -71,19 +73,10 @@
       WantedBy=multi-user.target 
     dest: /etc/systemd/system/hychain.service
   
-- name: Start service hychain.service, if not started
-  ansible.builtin.systemd_service:
-    name: hychain
-    state: started
-    enabled: true
-    daemon_reload: true
-
+- name: Start node
+  ansible.builtin.include_tasks:
+    file: commands/start.yml
+    
 # relative to playbook (molecule - default)
-- name: Assert Install
-  when: "'molecule' in groups"
-  block:
-    - name: Common install asserts
-      ansible.builtin.include_tasks:
-        file: tasks/asserts_install.yml
 
     # unique asserts go here
