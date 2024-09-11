@@ -58,9 +58,9 @@
       WantedBy=multi-user.target 
     dest: /etc/systemd/system/autonomi.service
 
-- name: Start service hychain.service, if not started
+- name: Start service autonomi.service, if not started
   ansible.builtin.systemd_service:
-    name: hychain
+    name: autonomi
     state: stopped
     enabled: true
     daemon_reload: true
