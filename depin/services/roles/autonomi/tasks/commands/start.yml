@@ -1,0 +1,6 @@
+---
+## start service
+- name: Start node
+  ansible.builtin.service:
+    name: autonomi.service
+    state: started

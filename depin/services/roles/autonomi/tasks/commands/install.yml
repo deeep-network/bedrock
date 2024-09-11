@@ -1,0 +1,79 @@
+---
+## install dependencies and service
+- name: Create program folder
+  become: true
+  ansible.builtin.file:
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+    dest: /opt/autonomi/{{ autonomi_version }}
+
+- name: Download binary to tmp
+  ansible.builtin.get_url:
+    url: "{{ autonomi_safeup_download_url }}"
+    dest: /tmp/safeup_service_install.sh
+
+- name: Install SafeUp
+  become: true
+  command: bash /tmp/safeup_service_install.sh
+
+- name: Install Safenode Manager
+  become: true
+  command: safeup node-manager
+
+- name: Copy safenode-manager binary
+  become: true
+  ansible.builtin.copy:
+    src: /root/.local/bin/safenode-manager
+    dest: /opt/autonomi/{{ autonomi_version }}/safenode-manager
+    remote_src: yes
+
+- name: Copy safenode-manager binary
+  become: true
+  command: chmod +x /opt/autonomi/{{ autonomi_version }}/safenode-manager
+
+- name: Create Services
+  become: true
+  command: /opt/autonomi/{{ autonomi_version }}/safenode-manager add --count {{ autonomi_count }} --peer /ip4/139.59.168.228/udp/56309/quic-v1/p2p/12D3KooWFTMtaqu24ddDSXk9v5YxnuhJmTLFRunER1CG4wZ2XLUU
+
+- name: Create systemd file
+  ansible.builtin.copy:
+    content: |
+      [Unit]
+      Description=autonomi service
+      After=network.target 
+ 
+      [Service]
+      User=root
+      Group=root
+      Type=simple
+      ExecStart=/opt/autonomi/{{ autonomi_version }}/safenode-manager start
+      ExecStop=/opt/autonomi/{{ autonomi_version }}/safenode-manager stop
+      Restart=always
+      RestartSec=5
+      PIDFile=/tmp/autonomi.pid
+ 
+      [Install]
+      WantedBy=multi-user.target 
+    dest: /etc/systemd/system/autonomi.service
+
+- name: Start service hychain.service, if not started
+  ansible.builtin.systemd_service:
+    name: hychain
+    state: stopped
+    enabled: true
+    daemon_reload: true
+
+- name: Start
+  ansible.builtin.include_tasks: commands/start.yml
+
+# relative to playbook (molecule - default)
+- name: Assert Install
+  when: "'molecule' in groups"
+  block:
+    - name: Common install asserts
+      ansible.builtin.include_tasks:
+        file: tasks/asserts_install.yml
+
+    # unique asserts go here
