@@ -1,0 +1,26 @@
+---
+- name: Disable systemd service
+  ansible.builtin.include_tasks: commands/stop.yml
+
+## uninstall service and remove all associated files
+- name: Delete content & directory
+  become: true
+  ansible.builtin.file:
+    state: absent
+    path: /opt/autonomi
+
+- name: Delete serviceS
+  become: true
+  ansible.builtin.file:
+    state: absent
+    path: /etc/systemd/system/autonomi.service
+
+# relative to playbook (molecule - default)
+- name: Assert Uninstall
+  when: "'molecule' in groups"
+  block:
+    - name: Common install asserts
+      ansible.builtin.include_tasks:
+        file: tasks/asserts_uninstall.yml
+
+    # unique asserts go here

@@ -1,0 +1,5 @@
+---
+autonomi_cmd: install
+autonomi_version: 0.10.3
+autonomi_count: 3
+autonomi_safeup_download_url: https://raw.githubusercontent.com/maidsafe/safeup/main/install.sh

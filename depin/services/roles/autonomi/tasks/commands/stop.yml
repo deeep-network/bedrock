@@ -1,0 +1,6 @@
+---
+## stop service
+- name: Stop node
+  ansible.builtin.service:
+    name: autonomi.service
+    state: stopped
