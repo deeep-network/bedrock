@@ -1,6 +1,7 @@
 ---
 ## stop service
 - name: Stop node
+  become: true
   ansible.builtin.service:
     name: autonomi.service
     state: stopped

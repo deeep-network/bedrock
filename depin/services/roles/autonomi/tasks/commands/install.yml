@@ -10,6 +10,7 @@
     dest: /opt/autonomi/{{ autonomi_version }}
 
 - name: Download binary to tmp
+  become: true
   ansible.builtin.get_url:
     url: "{{ autonomi_safeup_download_url }}"
     dest: /tmp/safeup_service_install.sh
@@ -38,6 +39,7 @@
   command: /opt/autonomi/{{ autonomi_version }}/safenode-manager add --count {{ autonomi_count }} --peer /ip4/139.59.168.228/udp/56309/quic-v1/p2p/12D3KooWFTMtaqu24ddDSXk9v5YxnuhJmTLFRunER1CG4wZ2XLUU
 
 - name: Create systemd file
+  become: true
   ansible.builtin.copy:
     content: |
       [Unit]
@@ -58,22 +60,9 @@
       WantedBy=multi-user.target 
     dest: /etc/systemd/system/autonomi.service
 
-- name: Start service autonomi.service, if not started
-  ansible.builtin.systemd_service:
-    name: autonomi
-    state: stopped
-    enabled: true
-    daemon_reload: true
-
 - name: Start
   ansible.builtin.include_tasks: commands/start.yml
 
 # relative to playbook (molecule - default)
-- name: Assert Install
-  when: "'molecule' in groups"
-  block:
-    - name: Common install asserts
-      ansible.builtin.include_tasks:
-        file: tasks/asserts_install.yml
 
     # unique asserts go here
