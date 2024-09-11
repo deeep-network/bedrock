@@ -1,6 +1,23 @@
 ---
 ## start service
 - name: Start node
+  become: true
   ansible.builtin.service:
     name: autonomi.service
     state: started
+  
+- name: Assert
+  when: "'molecule' in groups"
+  block:
+    - name: Get service info
+      become: true
+      ansible.builtin.systemd:
+        name: "autonomi"
+      register: _autonomi
+
+    - name: Check service
+      ansible.builtin.assert:
+        that:
+          - _autonomi['status']['ActiveState']=='active'
+
+        quiet: true
