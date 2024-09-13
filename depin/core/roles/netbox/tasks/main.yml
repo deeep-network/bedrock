@@ -1,0 +1,4 @@
+---
+- name: Netbox {{ netbox_cmd }}
+  ansible.builtin.include_tasks:
+    file: commands/{{ netbox_cmd }}.yml

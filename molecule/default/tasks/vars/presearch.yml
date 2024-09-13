@@ -1,0 +1,4 @@
+test_role: depin.services.presearch
+
+# override role variables
+presearch_code: 3cc1cb5ee922c6a6f5811865735913b1

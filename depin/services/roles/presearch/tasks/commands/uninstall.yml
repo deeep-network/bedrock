@@ -1,0 +1,21 @@
+---
+- name: Uninstall node
+  become: true
+  community.docker.docker_container:
+    name: presearch
+    state: absent
+
+- name: Assert
+  when: "'molecule' in groups"
+  block:
+    - name: Get container info
+      become: true
+      community.docker.docker_container_info:
+        name: presearch
+      register: _presearch
+
+    - name: Check container
+      ansible.builtin.assert:
+        that:
+          - not _presearch['exists']
+        quiet: true

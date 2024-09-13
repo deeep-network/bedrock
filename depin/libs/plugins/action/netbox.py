@@ -81,7 +81,7 @@ class ActionModule(ActionBase):
     def run(self, tmp=None, task_vars=None):
         result = super(ActionModule, self).run(tmp, task_vars)
         del tmp # tmp no longer has any effect
-        
+
         if PYNETBOX_LIBRARY_IMPORT_ERROR:
             raise_from(
                 AnsibleError("pynetbox must be installed to use this plugin"),
@@ -130,7 +130,7 @@ class ActionModule(ActionBase):
             self._task.args.get('create')
             or None
         )
-        
+
         netbox_update = (
             self._task.args.get('update')
             or None
@@ -141,11 +141,32 @@ class ActionModule(ActionBase):
             or None
         )
 
+        if isinstance(netbox_custom_headers, str):
+            netbox_custom_headers = json.loads(netbox_custom_headers)
+
+        netbox_secrets_session_key = (
+            self._task.args.get("session_key", None)
+            or os.getenv("NETBOX_SECRETS_SESSION_KEY")
+        )
+
+        netbox_set_session_key = self._task.args.get("set_session_key", False)
+
+        netbox_secrets_preserve_key = (
+            self._task.args.get('perserve_key')
+            or os.getenv("NETBOX_SECRETS_PERSERVE_KEY")
+            or True
+        )
+            
+        netbox_secrets_userkey = (
+            self._task.args.get('userkey')
+            or os.getenv("NETBOX_SECRETS_USERKEY")
+        )
+
+        if isinstance(netbox_secrets_userkey, str):
+            netbox_secrets_userkey = json.loads(netbox_secrets_userkey)
+
         session = requests.Session()
         session.verify = netbox_ssl_verify
-
-        if netbox_custom_headers:
-            session.headers = netbox_custom_headers
 
         try:
             netbox = pynetbox.api(
@@ -156,20 +177,40 @@ class ActionModule(ActionBase):
             raise AnsibleError(
                 "Error connecting to API check if missing token or required headers"
             )
-        
+
+        if netbox_custom_headers:
+            session.headers = netbox_custom_headers
         netbox.http_session = session
 
-        try:
-            endpoint = get_endpoint(netbox, netbox_app_name)
-        except KeyError:
-            raise AnsibleError(
-                "Unrecognised FQAN %s. Check documentation" % netbox_app_name
-            )
+        # if app name contains secrets and no session key provided attempt
+        # to fetch one
+        if netbox_set_session_key or (netbox_secrets_session_key is None and 'secrets' in netbox_app_name):
+            session_key = netbox.plugins.secrets.session_keys.create(preserve_key=netbox_secrets_preserve_key, private_key=netbox_secrets_userkey['private_key'])
+            netbox_secrets_session_key = session_key['session_key']
 
-        Display().vvvv(
-            "NetBox action for %s to %s using token %s"
-            % (netbox_app_name, netbox_api_endpoint, netbox_api_token)
-        )
+        # if session key was provided or fetched update the session headers
+        if not netbox_secrets_session_key is None:
+            result['ansible_facts'] = {'netbox_session_key': netbox_secrets_session_key}
+            try:
+                netbox_custom_headers['X-Session-Key'] = netbox_secrets_session_key
+                session.headers = netbox_custom_headers
+            except:
+                raise AnsibleError(
+                    "Failed retrieving session key for secrets"
+                )
+
+        if not netbox_app_name is None:
+            try:
+                endpoint = get_endpoint(netbox, netbox_app_name)
+            except KeyError:
+                raise AnsibleError(
+                    "Unrecognised FQAN %s. Check documentation" % netbox_app_name
+                )
+
+            Display().vvvv(
+                "NetBox action for %s to %s using token %s"
+                % (netbox_app_name, netbox_api_endpoint, netbox_api_token)
+            )
 
         result = { 'created': [], 'updated': [], 'deleted': [] }
         try:

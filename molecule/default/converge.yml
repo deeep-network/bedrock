@@ -6,18 +6,18 @@
     - name: Get services to test
       delegate_to: localhost
       ansible.builtin.find:
-        paths: tasks/vars/services
+        paths: tasks/vars
         recurse: false
         file_type: file
-      register: _collections
+      register: _roles
 
     - name: Test roles
       vars:
-        _roles: "{{ (fqcn is defined) | ternary([{'path': fqcn}], _collections['files']) }}"
+        test_roles: "{{ (fqcn is defined) | ternary([{'path': fqcn}], _roles['files']) }}"
         _fqcn: "depin.services.{{ item['path'] | basename | replace('.yml', '') }}"
         test_role: "{{ ('.yml' in item['path'] or '.' not in item['path']) | ternary(_fqcn, item['path']) }}"
       ansible.builtin.include_tasks:
         file: tasks/tests.yml
-      loop: "{{ _roles }}"
+      loop: "{{ test_roles }}"
       loop_control:
         label: "{{ item['path'] | basename | replace('.yml', '') }}"

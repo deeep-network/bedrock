@@ -4,7 +4,7 @@
 
 - name: Uninstall dependencies
   vars:
-    service_cmd: uninstall # should be set but if not
+    depin_cmd: uninstall # should be set but if not
   ansible.builtin.include_role:
     name: "{{ item }}"
   loop:
