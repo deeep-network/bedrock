@@ -1,0 +1,54 @@
+---
+- name: Create program folder
+  become: true
+  ansible.builtin.file:
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+    dest: "{{ ipfs_cluster_dir }}"
+
+- name: Download to tmp
+  become: true
+  ansible.builtin.unarchive:
+    remote_src: true
+    src: "{{ ipfs_cluster_download_url }}"
+    dest: /tmp
+  failed_when: false
+
+- name: Find binary
+  become: true
+  ansible.builtin.find:
+    paths:
+      - /tmp
+      - "{{ ipfs_cluster_download_path | default('/tmp') }}"
+    patterns: 'ipfs-cluster-{{ ipfs_cluster_type }}$'
+    use_regex: true
+    get_checksum: true
+    recurse: true
+  register: _download
+
+- name: Extract binary
+  become: true
+  vars:
+    _files: "{{ _download['files'] | selectattr('checksum', 'equalto', ipfs_cluster_checksum | default('')) }}"
+  ansible.builtin.copy:
+    remote_src: true
+    src: "{{ (_files | first | default(_download['files'] | first))['path'] }}"
+    dest: "{{ ipfs_cluster_dir }}"
+    mode: preserve
+
+- name: Symlink binary to path
+  become: true
+  ansible.builtin.file:
+    src: "{{ ipfs_cluster_dir }}/ipfs-cluster-{{ ipfs_cluster_type }}"
+    path: /usr/local/bin/ipfs-cluster-{{ ipfs_cluster_type }}
+    mode: '0755'
+    owner: root
+    group: root
+    state: hard
+    force: true
+
+- name: Setup
+  ansible.builtin.include_tasks:
+    file: commands/setup.yml

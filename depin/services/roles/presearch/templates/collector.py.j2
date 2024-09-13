@@ -3,6 +3,7 @@ import os
 import requests
 import socket
 import time
+from pathlib import Path
 
 from prometheus_client import start_http_server, REGISTRY, GC_COLLECTOR, PLATFORM_COLLECTOR, PROCESS_COLLECTOR
 from prometheus_client.core import GaugeMetricFamily
@@ -35,7 +36,7 @@ class MetricsCollector(Collector):
       {% endif %}
 
       hostname = socket.gethostname()
-      service = '{{ _name }}'
+      service = Path(__file__).stem
 
       _labels = ['device', 'instance', 'service']
       _label_values = [device, hostname, service]
@@ -109,6 +110,6 @@ if __name__ == "__main__":
   REGISTRY.unregister(PROCESS_COLLECTOR)
   REGISTRY.register(MetricsCollector())
 
-  start_http_server({{ vars[role_name + '_metrics_port'] | int }})
+  start_http_server({{ lookup('ansible.builtin.vars', metrics_parent_role_name + '_metrics_port') | int }})
   while True:
     time.sleep(30)

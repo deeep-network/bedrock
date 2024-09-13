@@ -11,15 +11,3 @@ storagechain_credentials:
 
 service_vm:
   disk: 2000
-
-service_data:
-  protocol:
-    value: tcp
-  ports:
-    - 3008
-    - 4001
-    - 5001
-    - 8080
-    - 9094
-    - 9095
-    - 9096

@@ -1,0 +1,8 @@
+---
+- name: Download binary to tmp
+  become: true
+  ansible.builtin.unarchive:
+    remote_src: true
+    src: "{{ installer_download_url }}"
+    dest: /tmp
+  failed_when: false
