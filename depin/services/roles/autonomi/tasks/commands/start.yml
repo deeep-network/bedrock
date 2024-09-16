@@ -19,5 +19,8 @@
       ansible.builtin.assert:
         that:
           - _autonomi['status']['ActiveState']=='active'
-
         quiet: true
+
+    - name: Set pid
+      ansible.builtin.set_fact:
+        _presearch_pid: "{{ _autonomi['status']['ExecMainPID'] }}"

@@ -3,7 +3,6 @@ import os
 import requests
 import socket
 import time
-from pathlib import Path
 
 from prometheus_client import start_http_server, REGISTRY, GC_COLLECTOR, PLATFORM_COLLECTOR, PROCESS_COLLECTOR
 from prometheus_client.core import GaugeMetricFamily
@@ -15,7 +14,6 @@ except ImportError as imp_exc:
     LXD_UTILS_IMPORT_ERROR = imp_exc
 else:
     LXD_UTILS_IMPORT_ERROR = None
-
 
 
 class MetricsCollector(Collector):
@@ -35,7 +33,7 @@ class MetricsCollector(Collector):
       {% endif %}
 
       hostname = socket.gethostname()
-      service = Path(__file__).stem
+      service = '{{ _name }}'
 
       _labels = ['device', 'instance', 'service']
       _label_values = [device, hostname, service]
@@ -109,6 +107,6 @@ if __name__ == "__main__":
   REGISTRY.unregister(PROCESS_COLLECTOR)
   REGISTRY.register(MetricsCollector())
 
-  start_http_server({{ metrics_port[metrics_parent_role_name] }})
+  start_http_server({{ vars[role_name + '_metrics_port'] | int }})
   while True:
     time.sleep(30)
