@@ -8,11 +8,11 @@
       changed_when: false
       register: pulumi_esc
 
-    # - name: Create cloud-init file
-    #   ansible.builtin.template:
-    #     src: ../../../../depin/core/playbooks/templates/user-data.yml.j2
-    #     dest: ../../cloud-init.yml
-    #     mode: '0644'
+    - name: Create cloud-init file
+      ansible.builtin.template:
+        src: ../../../../depin/core/playbooks/templates/user-data.yml.j2
+        dest: ../../cloud-init.yml
+        mode: '0644'
 
     - name: List Orb VMs
       ansible.builtin.command: orbctl list -f json

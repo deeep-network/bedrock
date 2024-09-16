@@ -4,6 +4,8 @@
   become: true
   ansible.builtin.service:
     name: hychain.service
+    enabled: true
+    daemon_reload: true
     state: started
 
 - name: Assert
@@ -12,7 +14,7 @@
     - name: Get service info
       become: true
       ansible.builtin.systemd:
-        name: "hychain"
+        name: hychain
       register: _hychain
 
     - debug:
@@ -26,4 +28,4 @@
 
     - name: Set pid
       ansible.builtin.set_fact:
-        _presearch_pid: "{{ _hychain['status']['ExecMainPID'] }}"
+        _hychain_pid: "{{ _hychain['status']['ExecMainPID'] }}"

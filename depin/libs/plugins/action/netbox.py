@@ -31,15 +31,21 @@ else:
 # https://github.com/python/cpython/issues/74570#issuecomment-1093748531
 os.environ['no_proxy']="*"
 
-def safe_json(j):
+def safe_json(s):
     try:
-        return json.loads(j)
+        return json.loads(s)
     except json.JSONDecodeError as e:
-        # Add quotes around values
-        j = re.sub(r': *([^",\{\}\[\]]+)', r': "\1"', j)
-        # Remove any double quotes that got added around existing quoted strings
-        j = j.replace('""', '"')
-    return json.loads(j)
+        # Replace single quotes with double quotes
+        s = s.replace("'", '"')
+        # Ensure property names are in double quotes
+        s = re.sub(r'(\s*)(\w+)(\s*:)', r'\1"\2"\3', s)
+        # Remove trailing commas
+        s = re.sub(r',\s*([\]}])', r'\1', s)
+
+        try:
+            return json.loads(s)
+        except json.JSONDecodeError as e:
+            return s, str(e)
 
 def get_endpoint(netbox, app):
     """
@@ -81,7 +87,7 @@ def get_endpoint(netbox, app):
 def format_fields(input):
     result = input
     if isinstance(result, str):
-        result = json.loads(result)
+        result = safe_json(result)
     if 'id' in result and isinstance(result['id'], str):
         result['id'] = int(result['id'])
     if not isinstance(result, list):
@@ -131,6 +137,7 @@ class ActionModule(ActionBase):
 
         if isinstance(netbox_custom_headers, str):
             netbox_custom_headers = safe_json(netbox_custom_headers)
+        Display().vvvv("%s", (netbox_custom_headers))
 
         netbox_app_name = (
             self._task.args.get('app')
@@ -154,7 +161,8 @@ class ActionModule(ActionBase):
 
         if isinstance(netbox_custom_headers, str):
             netbox_custom_headers = safe_json(netbox_custom_headers)
-
+        Display().vvvv("%s", (netbox_custom_headers))
+        
         netbox_secrets_session_key = (
             self._task.args.get("session_key", None)
             or os.getenv("NETBOX_SECRETS_SESSION_KEY")
@@ -175,7 +183,8 @@ class ActionModule(ActionBase):
 
         if isinstance(netbox_secrets_userkey, str):
             netbox_secrets_userkey = safe_json(netbox_secrets_userkey)
-
+        Display().vvvv("%s", (netbox_custom_headers))
+        
         session = requests.Session()
         session.verify = netbox_ssl_verify
 

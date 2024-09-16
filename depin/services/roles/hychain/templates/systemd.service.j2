@@ -1,0 +1,14 @@
+[Unit]
+Description=hychain service
+After=network.target 
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/hychain/{{ hychain_version }}
+ExecStart=/usr/local/bin/hychain guardian run {{ hychain_private_key }}
+Restart=always
+RuntimeMaxSec=6h
+PIDFile=/var/run/hychain.pid
+
+[Install]
+WantedBy=multi-user.target

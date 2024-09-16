@@ -1,8 +1,15 @@
 ---
 ## install dependencies and service
 
+
 - name: Start
   ansible.builtin.include_tasks: commands/start.yml
+
+- name: Install metrics
+  vars:
+    depin_cmd: install
+  ansible.builtin.include_tasks:
+    file: tasks/metrics.yml
 
 # @todo - assert correct version installed
 # relative to playbook (molecule - default)
