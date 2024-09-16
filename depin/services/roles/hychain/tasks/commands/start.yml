@@ -23,3 +23,7 @@
         that:
           - _hychain['status']['ActiveState']=='active'
         quiet: true
+
+    - name: Set pid
+      ansible.builtin.set_fact:
+        _presearch_pid: "{{ _hychain['status']['ExecMainPID'] }}"
