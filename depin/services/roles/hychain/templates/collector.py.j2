@@ -15,8 +15,6 @@ except ImportError as imp_exc:
 else:
     LXD_UTILS_IMPORT_ERROR = None
 
-
-
 class MetricsCollector(Collector):
     """Collector for Gala Node information"""
 
@@ -38,63 +36,6 @@ class MetricsCollector(Collector):
 
       _labels = ['device', 'instance', 'service']
       _label_values = [device, hostname, service]
-
-      # fetch public key
-      try:
-          file = open(pub_key_file, 'rb')
-          pub_key = file.read()
-          pub_key = pub_key.decode("utf-8")
-          pub_key = pub_key.splitlines()
-          pub_key = " ".join(pub_key[1:-1])
-          file.close()
-      except FileNotFoundError:
-          service_metrics_collected = 0
-
-      api_key = os.getenv("PRESEARCH_API_KEY")
-      
-      if api_key is None:
-        service_metrics_collected = 0
-
-      if service_metrics_collected == 1:
-        # https://docs.presearch.io/nodes/api
-        # no local status or CLI
-        params = {
-          'connected': True,
-          'disconnected': True,
-          'inactive': True,
-          'stats': True,
-          'public_keys': pub_key
-        }
-        url = 'https://nodes.presearch.com/api/nodes/status/' + api_key
-
-        try:
-          response = requests.get(url, params=params)
-          response.raise_for_status()
-
-          data = response.json()
-          data = data['nodes'][pub_key.replace(' ', '\n')]
-
-          state = 1 if data['status']['connected'] else 0
-          # even if connected if blocked = false
-          state = 1 if not data['status']['blocked'] else 0
-          
-          g1 = GaugeMetricFamily('state','current state', labels=_labels)
-          g1.add_metric(_label_values, value=state)
-
-          state_uptime = int(data['status']['minutes_in_current_state']) * 60 ## to seconds
-
-          g2 = GaugeMetricFamily('current_state_uptime','seconds in current state', labels=_labels)
-          g2.add_metric(_label_values, value=state_uptime)
-
-          total_uptime = data['period']['total_uptime_seconds']
-
-          g3 = GaugeMetricFamily('total_uptime','seconds in last 24 hours', labels=_labels)
-          g3.add_metric(_label_values, value=total_uptime)
-
-          result.extend([g1, g2, g3])
-          service_metrics_collected = 1
-        except requests.exceptions.HTTPError as err:
-          service_metrics_collected = 0
 
       success = GaugeMetricFamily('service_metrics_collected','service metrics collected successfully', labels=_labels)
       success.add_metric(_label_values, value=service_metrics_collected)

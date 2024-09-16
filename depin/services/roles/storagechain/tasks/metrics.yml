@@ -2,8 +2,8 @@
 - name: Install metrics
   vars:
     _name: "{{ role_name | replace('_', '-') }}"
-    _metrics_port: hychain_metrics_port
-  when: hychain_cmd != 'uninstall'
+    _metrics_port: storagechain_metrics_port
+  when: storagechain_cmd != 'uninstall'
   become: true
   block:
     - name: Ensure directory exists
@@ -44,7 +44,7 @@
 - name: Uninstall metrics
   vars:
     _name: "{{ role_name | replace('_', '-') }}"
-  when: hychain_cmd == 'uninstall'
+  when: storagechain_cmd == 'uninstall'
   become: true
   block:
     - name: Stop service

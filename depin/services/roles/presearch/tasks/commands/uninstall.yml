@@ -5,6 +5,12 @@
     name: presearch
     state: absent
 
+- name: Uninstall metrics
+  vars:
+    depin_cmd: uninstall
+  ansible.builtin.include_tasks:
+    file: tasks/metrics.yml
+
 - name: Assert
   when: "'molecule' in groups"
   block:

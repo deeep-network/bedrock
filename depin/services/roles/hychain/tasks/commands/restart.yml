@@ -1,5 +1,4 @@
 ---
-## stop and start service
 - name: Restarted node
   become: true
   ansible.builtin.service:
@@ -22,8 +21,9 @@
       ansible.builtin.assert:
         that:
           - _hychain['status']['ActiveState']=='active'
+          - _hychain_pid | int != _hychain['status']['ExecMainPID'] | int
         quiet: true
 
     - name: Set pid
       ansible.builtin.set_fact:
-        _presearch_pid: "{{ _hychain['status']['ExecMainPID'] }}"
+        _hychain_pid: "{{ _hychain['status']['ExecMainPID'] }}"
