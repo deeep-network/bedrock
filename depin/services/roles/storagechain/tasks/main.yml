@@ -1,4 +1,4 @@
 ---
-- name: Storagechain {{ service_cmd | default(storagechain_cmd) }}
+- name: Storagechain {{ storagechain_cmd }}
   ansible.builtin.include_tasks:
-    file: commands/{{ service_cmd | default(storagechain_cmd) }}.yml
+    file: commands/{{ storagechain_cmd }}.yml

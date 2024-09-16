@@ -1,0 +1,2 @@
+---
+manager_cmd: "{{ depin_cmd | default('install') }}"

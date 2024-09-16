@@ -1,6 +1,5 @@
 ---
-ipfs_cluster_follow_cmd: install
-ipfs_cluser_follow_credentials: "{{ service_credentials }}"
+ipfs_cluster_follow_cmd: "{{ depin_cmd | default('install') }}"
 
 ipfs_cluster_follow_version: v1.1.1
 ipfs_cluster_follow_download_url:

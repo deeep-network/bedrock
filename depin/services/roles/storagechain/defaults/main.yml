@@ -1,5 +1,5 @@
 ---
-storagechain_cmd: install
+storagechain_cmd: "{{ depin_cmd | default('install') }}"
 storagechain_credentials: "{{ service_credentials }}"
 storagechain_programs:
   - storagechain

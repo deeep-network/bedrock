@@ -1,5 +1,0 @@
----
-# - name: Load secrets
-#   community.sops.load_vars:
-#     file: secrets.yml
-#     expressions: evaluate-on-load

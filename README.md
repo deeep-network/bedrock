@@ -68,13 +68,13 @@ pipx install --include-deps molecule
 
 3. copy the `example.env` to `.env` and update the contents
 
-4. test all services with a file in default/tasks/vars/services
+4. test all services
 
     ```bash
     molecule converge
     ```
 
-5. test a specific service role
+5. test individual service role
 
     ```bash
     molecule converge -- -e='fqcn=test.yml'
@@ -83,9 +83,15 @@ pipx install --include-deps molecule
     molecule converge -- -e=@tasks/vars/services/test.yml
     ```
 
-6. test any collection role
+6. test all libs role
 
     ```bash
-    molecule converge -- -e='fqcn=depin.libs.test'
-    molecule converge -- -e=@tasks/vars/libs/test.yml
+    molecule converge -s libs
+    ```
+
+7. test individual libs role
+
+    ```bash
+    molecule converge -s libs -- -e='fqcn=depin.libs.test'
+    molecule converge -s libs -- -e=@tasks/vars/libs/test.yml
     ```

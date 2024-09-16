@@ -1,0 +1,4 @@
+---
+- name: Services - {{ manager_cmd }}
+  ansible.builtin.include_tasks:
+    file: commands/{{ manager_cmd }}.yml
