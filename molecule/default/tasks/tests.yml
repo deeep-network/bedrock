@@ -1,14 +1,18 @@
 ---
 - name: Load test variables
   vars:
-    _collection: "{{ (test_role | split('.'))[1] }}"
     _file: "{{ test_role | split('.') | last }}.yml"
   ansible.builtin.include_vars:
-    file: "{{ _collection }}/{{ _file }}"
+    file: "{{ _file }}"
   failed_when: false
 
 - name: Block for error handling
   block:
+    - name: Metrics
+      ansible.builtin.include_role:
+        name: "{{ test_role }}"
+        tasks_from: metrics.yml
+
     - name: Install
       ansible.builtin.include_role:
         name: "{{ test_role }}"

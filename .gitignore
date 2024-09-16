@@ -4,7 +4,7 @@
 
 # molecule
 build
-**/substrate/cloud-init.yml
+**/shared/cloud-init.yml
 
 .env*
 !dev.env*

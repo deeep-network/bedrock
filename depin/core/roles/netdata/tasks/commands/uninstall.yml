@@ -1,0 +1,12 @@
+---
+- name: Fetch kickstart script
+  ansible.builtin.uri:
+    url: https://get.netdata.cloud/kickstart.sh
+    return_content: true
+  register: _kickstart
+
+- name: Run kickstart script
+  ansible.builtin.command:
+    cmd: sh -s -- --uninstall --non-interactive
+    stdin: "{{ _kickstart.content }}"
+  changed_when: (_install_results.stdout | regex_search('changed=(\\d+)', '\\1') | first) | int > 0

@@ -1,0 +1,10 @@
+---
+presearch_cmd: "{{ depin_cmd | default('install') }}"
+presearch_credentials: "{{ service_credentials }}"
+presearch_metrics_port: 33001
+presearch_programs:
+  - presearch
+
+presearch_version: 1.2.34
+presearch_registration_code: "{{ lookup('env', 'PRESEARCH_REGISTRATION_CODE') | default(notdefined) | mandatory }}"
+presearch_pub_key_file: '/var/lib/docker/volumes/presearch-node-storage/_data/.keys/id_rsa.pub'

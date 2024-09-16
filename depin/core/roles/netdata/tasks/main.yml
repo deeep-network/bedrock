@@ -1,0 +1,4 @@
+---
+- name: Netdata {{ netdata_cmd }}
+  ansible.builtin.include_tasks:
+    file: commands/{{ netdata_cmd }}.yml

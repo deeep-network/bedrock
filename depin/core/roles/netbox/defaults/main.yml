@@ -1,0 +1,2 @@
+---
+netbox_cmd: "{{ depin_cmd | default('vm_update') }}"

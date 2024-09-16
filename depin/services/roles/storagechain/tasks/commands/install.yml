@@ -116,7 +116,7 @@
   vars:
     inadyn_hostname: "{{ storagechain_dns }}"
   ansible.builtin.include_role:
-    name: depin.libs.inadyn
+    name: depin.core.inadyn
 
 # @todo - temporary solution to get storagechain the IP address of node
 - name: Forward IP Address to Storagechain

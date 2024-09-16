@@ -1,0 +1,19 @@
+---
+deployer_substrate: "{{ device_substrate | default('lxd') }}"
+
+deployer_short_hostname: "{{ notdefined | mandatory }}"
+deployer_default_interface: "{{ ansible_default_ipv4.interface }}"
+
+deployer_vm: "{{ device_vm }}"
+deployer_vm_image: "{{ device_vm_image | default('22.04') }}"
+deployer_vm_default_hostname: vm-{{ deployer_vm['id'] }}.box.nerd-node.com
+deployer_vm_hostname: "{{ device_vm_hostname | default(deployer_vm_default_hostname) }}"
+deployer_vm_short_hostname: "{{ deployer_vm_hostname | split('.') | first }}"
+
+deployer_vm_ipv4_address: "{{ deployer_vm['primary_ip']['address'] | default('') | split('/') | first }}"
+deployer_vm_public_ipv4_address: "{{ deployer_vm_ipv4_address | ansible.utils.ipaddr('public') }}"
+
+deployer_vm_vcpus: "{{ deployer_vm['vcpus'] | int }}"
+deployer_vm_memory: "{{ (deployer_vm['memory'] | int >= 1024) | ternary(deployer_vm['memory'] | int, '1024') }}MiB"
+deployer_vm_disk: "{{ deployer_vm['disk'] | int }}GiB"
+deployer_vm_recreate: false
