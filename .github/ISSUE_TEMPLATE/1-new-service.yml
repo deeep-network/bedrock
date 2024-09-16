@@ -2,7 +2,7 @@ name: New Service
 description: Track the completion of a New Service
 title: "[New]: "
 labels: ["new", "enhancement", "service"]
-projects: ["deeep-network/1", "deeep-network/4"]
+projects: ["deeep-network/4"]
 assignees:
   - anthonyra
 body:
