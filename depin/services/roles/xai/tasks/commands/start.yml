@@ -1,0 +1,21 @@
+---
+## Start XAI Sentry Node service in test mode
+- name: Start XAI Sentry Node in test mode
+  become: true
+  command: ./sentry-node-cli-linux --test-mode
+
+# Assert that XAI Sentry Node is running
+- name: Assert XAI Sentry Node service is running in test mode
+  when: "'molecule' in groups"
+  block:
+    - name: Get service info for XAI Sentry Node
+      become: true
+      ansible.builtin.systemd:
+        name: "xai-sentry"
+      register: _xai_sentry
+
+    - name: Verify XAI Sentry Node service is active in test mode
+      ansible.builtin.assert:
+        that:
+          - _xai_sentry.status.ActiveState == 'active'
+        quiet: true

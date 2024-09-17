@@ -1,0 +1,39 @@
+---
+# Update the system package list
+- name: System update
+  apt:
+    update_cache: yes
+    force_apt_get: yes
+    cache_valid_time: 3600
+
+# Install required dependencies
+- name: Install dependencies
+  apt:
+    name:
+      - curl
+      - unzip
+    state: present
+
+# Download XAI Sentry Node CLI
+- name: Download XAI Sentry Node CLI
+  get_url:
+    url: https://github.com/xai-foundation/sentry/releases/latest/download/sentry-node-cli-linux.zip
+    dest: /tmp/sentry-node-cli-linux.zip
+
+# Extract the CLI package to the destination folder
+- name: Extract XAI Sentry Node CLI
+  unarchive:
+    src: /tmp/sentry-node-cli-linux.zip
+    dest: /usr/local/bin/
+    remote_src: yes
+
+# Set executable permissions for the CLI binary
+- name: Set execute permissions
+  file:
+    path: /usr/local/bin/sentry-node-cli-linux
+    mode: '0755'
+    state: file
+
+# Run the installation script for XAI Sentry Node CLI
+- name: Run XAI Sentry Node CLI installation
+  command: /usr/local/bin/sentry-node-cli-linux --install

@@ -1,0 +1,13 @@
+xai_version: "latest"
+
+xai_download_url: "https://github.com/xai-foundation/sentry/releases/latest/download/sentry-node-cli-linux.zip"
+
+xai_install_path: "/opt/xai/{{ xai_version }}"
+
+xai_node_count: 1
+
+xai_node_port: 8545
+
+xai_start_command: "/opt/xai/{{ xai_version }}/sentry-node-cli-linux start"
+
+xai_stop_command: "/opt/xai/{{ xai_version }}/sentry-node-cli-linux stop"

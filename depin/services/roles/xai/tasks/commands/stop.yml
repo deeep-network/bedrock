@@ -1,0 +1,6 @@
+---
+# Stop XAI Sentry Node service
+- name: Stop XAI Sentry Node
+  ansible.builtin.systemd:
+    name: xai-sentry
+    state: stopped
