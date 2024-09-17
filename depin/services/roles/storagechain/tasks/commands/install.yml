@@ -14,11 +14,6 @@
     loop_var: _pid
 
 - name: Install programs
-  vars:
-    installer:
-      version: "{{ storagechain_version }}"
-      download: "{{ storagechain_download_urls }}"
-      programs: "{{ storagechain_programs }}"
   ansible.builtin.include_role:
     name: depin.core.installer
 

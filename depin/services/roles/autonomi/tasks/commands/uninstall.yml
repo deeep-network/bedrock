@@ -2,20 +2,23 @@
 - name: Disable systemd service
   ansible.builtin.include_tasks: commands/stop.yml
 
-## uninstall service and remove all associated files
+- name: Uninstall metrics
+  ansible.builtin.include_role:
+    name: depin.core.metrics
+
 - name: Delete content & directory
   become: true
   ansible.builtin.file:
     state: absent
-    path: /opt/autonomi
+    path: "{{ _delete }}"
+  loop:
+    - /opt/autonomi/{{ autonomi_version }}
+    - /etc/systemd/system/autonomi.service
+  loop_control:
+    loop_var: _delete
 
-- name: Delete services
-  become: true
-  ansible.builtin.file:
-    state: absent
-    path: /etc/systemd/system/autonomi.service
-
-# relative to playbook (molecule - default)
-
-
-    # unique asserts go here
+- name: Remove all safenode-manager files
+  ansible.builtin.command: 
+    cmd: safenode-manager reset --force
+  changed_when: false
+  failed_when: false

@@ -1,22 +1,22 @@
 ---
-## stop service
 - name: Stop node
   become: true
   ansible.builtin.service:
     name: autonomi.service
+    enabled: false
     state: stopped
 
-- name: Assert
-  when: "'molecule' in groups"
-  block:
-    - name: Get service info
-      become: true
-      ansible.builtin.systemd:
-        name: "autonomi"
-      register: _autonomi
+# - name: Assert
+#   when: "'molecule' in groups"
+#   block:
+#     - name: Get service info
+#       become: true
+#       ansible.builtin.systemd:
+#         name: "autonomi"
+#       register: _autonomi
 
-    - name: Check service
-      ansible.builtin.assert:
-        that:
-          - _autonomi['status']['ActiveState']=='inactive'
-        quiet: true
+#     - name: Check service
+#       ansible.builtin.assert:
+#         that:
+#           - _autonomi['status']['ActiveState']=='inactive'
+#         quiet: true

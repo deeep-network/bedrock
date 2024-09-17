@@ -5,4 +5,3 @@
     remote_src: true
     src: "{{ installer_download_url }}"
     dest: /tmp
-  failed_when: false
