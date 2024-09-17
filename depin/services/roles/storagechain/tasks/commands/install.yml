@@ -116,7 +116,7 @@
   vars:
     inadyn_hostname: "{{ storagechain_dns }}"
   ansible.builtin.include_role:
-    name: depin.libs.inadyn
+    name: depin.core.inadyn
 
 # @todo - temporary solution to get storagechain the IP address of node
 - name: Forward IP Address to Storagechain
@@ -141,6 +141,12 @@
   retries: 5
   delay: 5
   until: send_ipv4_address is not failed
+
+- name: Install metrics
+  vars:
+    depin_cmd: install
+  ansible.builtin.include_tasks:
+    file: tasks/metrics.yml
 
 - name: Assert
   when: "'molecule' in groups"

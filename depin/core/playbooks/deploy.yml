@@ -1,0 +1,20 @@
+---
+- name: Deploy
+  hosts: localhost
+  gather_facts: true
+  become: true
+  vars:
+    device_short_hostname: "{{ lookup('pipe', 'hostname -s') }}"
+    _filter: 'status=active cluster={{ device_short_hostname }}'
+    device_vms: "{{ query('depin.libs.netbox', 'virtualization.virtual-machines', filter=_filter) }}"
+  tasks:
+    - name: Deploy pending VMs
+      when: device_vms | length > 0
+      vars:
+        deployer_vm: "{{ vm }}"
+      ansible.builtin.include_role:
+        name: depin.core.deployer
+      loop: "{{ device_vms }}"
+      loop_control:
+        loop_var: vm
+        label: "{{ vm['name'] }}"

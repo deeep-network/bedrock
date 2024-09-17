@@ -1,4 +1,4 @@
 ---
-- name: Ipfs cluster follow {{ service_cmd | default(ipfs_cluster_follow_cmd) }}
+- name: Ipfs cluster follow {{ ipfs_cluster_follow_cmd }}
   ansible.builtin.include_tasks:
-    file: commands/{{ service_cmd | default(ipfs_cluster_follow_cmd) }}.yml
+    file: commands/{{ ipfs_cluster_follow_cmd }}.yml

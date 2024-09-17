@@ -1,0 +1,4 @@
+---
+- name: Docker {{ docker_cmd }}
+  ansible.builtin.include_tasks:
+    file: commands/{{ docker_cmd }}.yml

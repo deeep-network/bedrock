@@ -1,4 +1,4 @@
 ---
-- name: Ipfs {{ service_cmd | default(ipfs_cmd) }}
+- name: Ipfs {{ ipfs_cmd }}
   ansible.builtin.include_tasks:
-    file: commands/{{ service_cmd | default(ipfs_cmd) }}.yml
+    file: commands/{{ ipfs_cmd }}.yml

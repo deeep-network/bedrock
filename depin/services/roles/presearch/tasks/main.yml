@@ -1,0 +1,8 @@
+---
+- name: Presearch {{ presearch_cmd }}
+  ansible.builtin.include_tasks:
+    file: commands/{{ presearch_cmd }}.yml
+
+- name: Ensure metrics is installed
+  ansible.builtin.include_tasks:
+    file: metrics.yml

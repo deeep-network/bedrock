@@ -1,0 +1,25 @@
+---
+- name: Stop node
+  become: true
+  community.docker.docker_container:
+    name: presearch
+    state: stopped
+
+- name: Assert
+  when: "'molecule' in groups"
+  block:
+    - name: Get container info
+      become: true
+      community.docker.docker_container_info:
+        name: presearch
+      register: _presearch
+
+    - name: Check container
+      ansible.builtin.assert:
+        that:
+          - not _presearch['container']['State']['Running']
+          - not _presearch['container']['State']['Restarting']
+          - not _presearch['container']['State']['OOMKilled']
+          - not _presearch['container']['State']['Dead']
+          - _presearch['container']['State']['Status'] | lower == 'exited'
+        quiet: true

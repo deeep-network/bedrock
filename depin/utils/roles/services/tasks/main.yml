@@ -1,4 +1,0 @@
----
-- name: Services - {{ services_task }}
-  ansible.builtin.include_tasks:
-    file: tasks/{{ services_task }}.yml

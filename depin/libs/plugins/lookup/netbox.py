@@ -63,21 +63,30 @@ DOCUMENTATION = """
 
 EXAMPLES = """
 tasks:
-  # query a list of devices using ENV file
-  - name: Obtain list of devices from NetBox
+    # query a list of devices using ENV file
+    - name: Obtain list of devices from NetBox
     ansible.builtin.debug:
-      msg: >
+        msg: >
         "Device {{ item.value.display_name }} (ID: {{ item.key }}) was
-         manufactured by {{ item.value.device_type.manufacturer.name }}"
+            manufactured by {{ item.value.device_type.manufacturer.name }}"
     loop: "{{ query('depin.libs.netbox', 'netbox.dcim.devices' }}"
 
     # This example uses an API Filter
-  - name: Obtain list of devices from NetBox
+    - name: Obtain list of devices from NetBox
     debug:
-      msg: >
+        msg: >
         "Device {{ item.value.display_name }} (ID: {{ item.key }}) was
-         manufactured by {{ item.value.device_type.manufacturer.name }}"
+            manufactured by {{ item.value.device_type.manufacturer.name }}"
     loop: "{{ query('depin.libs.netbox', 'dcim.devices', filter='role=management tag=Dell' }}"
+
+    # This example shows how to add multiple identical filters
+    # multiple key value pairs or comma seperated lists are accepted
+    - name: Obtain list of devices from NetBox
+    debug:
+        msg: >
+        "Device {{ item.value.display_name }} (ID: {{ item.key }}) was
+            manufactured by {{ item.value.device_type.manufacturer.name }}"
+    loop: "{{ query('depin.libs.netbox', 'dcim.devices', filter='id=1,2,3 id=4 id=5,6' }}"
 
   # query a secret from Netbox Secrets with all options set
   - name: Obtain Netbox secret
@@ -180,12 +189,18 @@ def build_filters(filters):
         result (list): List of dictionaries to filter by.
     """
     filter = {}
+
+    if isinstance(filters, int):
+        filters = "id=%s" % (filters)
+
     args_split = split_args(filters)
     args = [parse_kv(x) for x in args_split]
     for arg in args:
         for k, v in arg.items():
             if k not in filter:
                 filter[k] = list()
+                if isinstance(v, list):
+                    filter[k].extend(v)
                 filter[k].append(v)
             else:
                 filter[k].append(v)
@@ -278,27 +293,34 @@ class LookupModule(LookupBase):
         ## short circuit if passed in False for filter
         if netbox_filter == False:
             return []
+        
+        netbox_secrets_preserve_key = (
+            kwargs.get('perserve_key')
+            or os.getenv("NETBOX_SECRETS_PERSERVE_KEY")
+            or True
+        )
+            
+        netbox_secrets_userkey = (
+            kwargs.get('userkey')
+            or os.getenv("NETBOX_SECRETS_USERKEY")
+        )
+
+        if isinstance(netbox_secrets_userkey, str):
+            netbox_secrets_userkey = json.loads(netbox_secrets_userkey)
 
         try:
-            netbox_secrets_session_key = variables['ansible_facts']['session_key']
+            netbox_secrets_session_key = variables['ansible_facts']['netbox_session_key']
         except (NameError, AttributeError, KeyError):
             netbox_secrets_session_key = (
                 kwargs.get("session_key", None)
                 or os.getenv("NETBOX_SECRETS_SESSION_KEY")
             )
 
-        if netbox_secrets_session_key is not None:
+        if not netbox_secrets_session_key is None:
             netbox_custom_headers['X-Session-Key'] = netbox_secrets_session_key
 
         session = requests.Session()
         session.verify = netbox_ssl_verify
-
-        if netbox_custom_headers:
-            Display().vvvv(
-                "%s"
-                % (netbox_custom_headers)
-            )
-            session.headers = netbox_custom_headers
 
         try:
             netbox = pynetbox.api(
@@ -309,8 +331,27 @@ class LookupModule(LookupBase):
             raise AnsibleError(
                 "Error connecting to API check if missing token or required headers"
             )
-        
+
+        if netbox_custom_headers:
+            Display().vvvv("%s" % (netbox_custom_headers))
+            session.headers = netbox_custom_headers
         netbox.http_session = session
+
+        # if terms contains secrets and no session key provided attempt
+        # to fetch one
+        if netbox_secrets_session_key is None and any('secrets' in t for t in terms):
+            session_key = netbox.plugins.secrets.session_keys.create(preserve_key=netbox_secrets_preserve_key, private_key=netbox_secrets_userkey['private_key'])
+            netbox_secrets_session_key = session_key['session_key']
+
+        # if session key was provided or fetched update the session headers
+        if not netbox_secrets_session_key is None:
+            try:
+                netbox_custom_headers['X-Session-Key'] = netbox_secrets_session_key
+                session.headers = netbox_custom_headers
+            except:
+                raise AnsibleError(
+                    "Failed retrieving session key for secrets"
+                )
 
         results = []
         for term in terms:
@@ -327,36 +368,40 @@ class LookupModule(LookupBase):
             )
 
             if netbox_filter:
-                filter = build_filters(netbox_filter)
-                
-                id = filter.get('id', None)
-                if id is None:
-                    id = filter.get('_raw_params', None)
+                filters = build_filters(netbox_filter)
 
-                if id:
-                    if isinstance(id, list):
+                id = filters.get('id', None)
+                if id is None:
+                    id = filters.get('_raw_params', None)
+
+                if not id is None:
+                    id = [
+                            x
+                            for i in id
+                            for x in str(i).split(',')
+                        ]
+
+                    if len(id) == 1:
                         id = id[0]
 
-                    Display().vvvv(
-                        "ID set %s, will use .get instead of .filter"
-                        % (id)
-                    )
-                    try:
-                        nb_data = endpoint.get(int(id))
-                        if nb_data is None:
-                            return []
-                        
-                        data = dict(nb_data)
-                        Display().vvvvv(pformat(data))
-                        return [data]
-                    except pynetbox.RequestError as e:
-                        raise AnsibleError(e.error)
+                        Display().vvvv("ID set %s, will use .get instead of .filter" % (id))
+                        try:
+                            nb_data = endpoint.get(int(id))
+                            if nb_data is None:
+                                return []
+                            
+                            data = dict(nb_data)
+                            Display().vvvvv(pformat(data))
+                            return [data]
+                        except pynetbox.RequestError as e:
+                            raise AnsibleError(e.error)
 
-                Display().vvvv("filter is %s" % filter)
+                    filters['id'] = id
+                Display().vvvv("filters are %s" % filters)
 
             # Make call to NetBox API and capture any failures
             nb_data = fetch(
-                endpoint, filters=filter if netbox_filter else None
+                endpoint, filters=filters if netbox_filter else None
             )
 
             for data in nb_data:

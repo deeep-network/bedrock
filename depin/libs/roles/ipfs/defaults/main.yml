@@ -1,6 +1,5 @@
 ---
-ipfs_cmd: install
-ipfs_credentials: "{{ service_credentials }}"
+ipfs_cmd: "{{ depin_cmd | default('install') }}"
 
 ipfs_version: v0.29.0
 ipfs_download_url:
