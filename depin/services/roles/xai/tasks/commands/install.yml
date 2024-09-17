@@ -1,39 +1,40 @@
 ---
-# Update the system package list
-- name: System update
-  apt:
-    update_cache: yes
-    force_apt_get: yes
-    cache_valid_time: 3600
+- name: Install XAI Sentry Node CLI
+  hosts: all
+  become: yes
 
-# Install required dependencies
-- name: Install dependencies
-  apt:
-    name:
-      - curl
-      - unzip
-    state: present
+  tasks:
+    # Update the system package list
+    - name: System update
+      apt:
+        update_cache: yes
+        force_apt_get: yes
+        cache_valid_time: 3600
 
-# Download XAI Sentry Node CLI
-- name: Download XAI Sentry Node CLI
-  get_url:
-    url: https://github.com/xai-foundation/sentry/releases/latest/download/sentry-node-cli-linux.zip
-    dest: /tmp/sentry-node-cli-linux.zip
+    # Install required dependencies
+    - name: Install dependencies
+      apt:
+        name:
+          - curl
+          - unzip
+        state: present
 
-# Extract the CLI package to the destination folder
-- name: Extract XAI Sentry Node CLI
-  unarchive:
-    src: /tmp/sentry-node-cli-linux.zip
-    dest: /usr/local/bin/
-    remote_src: yes
+    # Download XAI Sentry Node CLI
+    - name: Download XAI Sentry Node CLI
+      get_url:
+        url: https://github.com/xai-foundation/sentry/releases/latest/download/sentry-node-cli-linux.zip
+        dest: /tmp/sentry-node-cli-linux.zip
 
-# Set executable permissions for the CLI binary
-- name: Set execute permissions
-  file:
-    path: /usr/local/bin/sentry-node-cli-linux
-    mode: '0755'
-    state: file
+    # Extract the CLI package to the destination folder
+    - name: Extract XAI Sentry Node CLI
+      unarchive:
+        src: /tmp/sentry-node-cli-linux.zip
+        dest: /usr/local/bin/
+        remote_src: yes
 
-# Run the installation script for XAI Sentry Node CLI
-- name: Run XAI Sentry Node CLI installation
-  command: /usr/local/bin/sentry-node-cli-linux --install
+    # Set executable permissions for the CLI binary
+    - name: Set execute permissions
+      file:
+        path: /usr/local/bin/sentry-node-cli-linux
+        mode: '0755'
+        state: file
