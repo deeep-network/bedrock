@@ -27,7 +27,7 @@
     image:  presearch/node:{{ presearch_version }}
     restart_policy: unless-stopped
     detach: true
-    log_driver: syslog
+    log_driver: journald
     state: started
     volumes:
       - presearch-node-storage:/app/node
