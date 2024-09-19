@@ -78,7 +78,7 @@ body:
 
         ### Logs
 
-        - [ ] logs are collected via syslog
+        - [ ] logs are collected via journald
         
         ### 'galaxy.yml'
 
