@@ -1,8 +1,13 @@
 #!/usr/bin/env python3
 import os
-import requests
 import socket
 import time
+import os
+import time
+import subprocess
+from subprocess import check_output
+import json
+
 
 from prometheus_client import start_http_server, REGISTRY, GC_COLLECTOR, PLATFORM_COLLECTOR, PROCESS_COLLECTOR
 from prometheus_client.core import GaugeMetricFamily
@@ -15,99 +20,135 @@ except ImportError as imp_exc:
 else:
     LXD_UTILS_IMPORT_ERROR = None
 
-
-
 class MetricsCollector(Collector):
     """Collector for Gala Node information"""
+    def total_uptime_count(sefl, autonomi_service_date):
+        total_uptime=0
+        for x in autonomi_service_date:
+            state_uptime_list = autonomi_service_date[x].split(":")
+            hours=0
+            if len(state_uptime_list) <= 2:
+                minutes = int(state_uptime_list[0])
+                seconds = int(state_uptime_list[1])
+            else:
+                hours = int(state_uptime_list[0])
+                minutes = int(state_uptime_list[1])
+                seconds = int(state_uptime_list[2])
+            total_uptime=total_uptime+seconds+minutes*60+hours*3600
+        return total_uptime
 
     def collect(self):
-      result = []
-      service_metrics_collected = 1
+        result = []
+        service_metrics_collected = 1
 
-      device = 'molecule'
-      # fetch device hostname
-      # @note - LXD specific feature
-      {% if not molecule_inventory is defined -%}
-      if LXD_UTILS_IMPORT_ERROR is None:
-        device = lxd_get("1.0/config/user.location")['value']
-        device = device['value']
-      {% endif %}
+        device = 'molecule'
 
-      hostname = socket.gethostname()
-      service = '{{ _name }}'
-
-      _labels = ['device', 'instance', 'service']
-      _label_values = [device, hostname, service]
-
-      # fetch public key
-      try:
-          file = open(pub_key_file, 'rb')
-          pub_key = file.read()
-          pub_key = pub_key.decode("utf-8")
-          pub_key = pub_key.splitlines()
-          pub_key = " ".join(pub_key[1:-1])
-          file.close()
-      except FileNotFoundError:
-          service_metrics_collected = 0
-
-      api_key = os.getenv("PRESEARCH_API_KEY")
-      
-      if api_key is None:
-        service_metrics_collected = 0
-
-      if service_metrics_collected == 1:
-        # https://docs.presearch.io/nodes/api
-        # no local status or CLI
-        params = {
-          'connected': True,
-          'disconnected': True,
-          'inactive': True,
-          'stats': True,
-          'public_keys': pub_key
-        }
-        url = 'https://nodes.presearch.com/api/nodes/status/' + api_key
-
+        service_name='guardian-cli-linux'
         try:
-          response = requests.get(url, params=params)
-          response.raise_for_status()
+            pid_id= str(check_output(["pidof",service_name]).decode("utf-8")).replace("\n","")
+            print("PID of process: " + pid_id)
+            state = 1
+            proc = subprocess.Popen(
+            ["ps", "-eo", "pid,comm,lstart,etime,time"], stdout=subprocess.PIPE
+            )   
+            proc.wait()
+            services_pids = proc.stdout.readlines()
 
-          data = response.json()
-          data = data['nodes'][pub_key.replace(' ', '\n')]
+            try:
+                f = open("total_uptime.txt", "r")
+                autonomi_service_date = json.loads(f.read().replace("'", '"'))
+                os.remove("total_uptime.txt")
+            except:
+                print("No file")
+                autonomi_service_date={}
 
-          state = 1 if data['status']['connected'] else 0
-          # even if connected if blocked = false
-          state = 1 if not data['status']['blocked'] else 0
-          
-          g1 = GaugeMetricFamily('state','current state', labels=_labels)
-          g1.add_metric(_label_values, value=state)
+            for pid_decription in services_pids:
+                pid_decription = pid_decription.decode("utf-8")
+                p = pid_decription.split()[0]
+                if p == pid_id:
+                    print(pid_decription)
+                    mounth = pid_decription.split()[3]
+                    day = pid_decription.split()[4]
+                    time_str = pid_decription.split()[5]
+                    years = pid_decription.split()[6]
+                    run_uptime = pid_decription.split()[7]
+                    state_uptime_dic=run_uptime.split(":")
+                    if len(state_uptime_dic)<=2:
+                        hours=0
+                        minutes = int(state_uptime_dic[0])
+                        seconds = int(state_uptime_dic[1])
+                    else:
+                        hours = int(state_uptime_dic[0])
+                        minutes = int(state_uptime_dic[1])
+                        seconds = int(state_uptime_dic[2])
+                    state_uptime=seconds+minutes*60+hours*3600
+                    print(state_uptime)
+                    date_str = mounth + "-" + day + "-" + years + " " + time_str
+                    autonomi_service_date[date_str] = run_uptime
+                    print(autonomi_service_date)
+            total_uptime=self.total_uptime_count(autonomi_service_date)
+            f = open("total_uptime.txt", "w")
+            f.write(str(autonomi_service_date))
+            f.close()    
 
-          state_uptime = int(data['status']['minutes_in_current_state']) * 60 ## to seconds
+        except:
 
-          g2 = GaugeMetricFamily('current_state_uptime','seconds in current state', labels=_labels)
-          g2.add_metric(_label_values, value=state_uptime)
+            print("Service: "+ service_name + "wasn't found")
+            state = 0
+            state_uptime =0
+            try:
+                f = open("total_uptime.txt", "r")
+                autonomi_service_date = json.loads(f.read().replace("'", '"'))
+                total_uptime=self.total_uptime_count(autonomi_service_date)
+            except:
+                print("No file")
+                total_uptime=0
+                service_metrics_collected = 0
+                autonomi_service_date
 
-          total_uptime = data['period']['total_uptime_seconds']
 
-          g3 = GaugeMetricFamily('total_uptime','seconds in last 24 hours', labels=_labels)
-          g3.add_metric(_label_values, value=total_uptime)
 
-          result.extend([g1, g2, g3])
-          service_metrics_collected = 1
-        except requests.exceptions.HTTPError as err:
-          service_metrics_collected = 0
+            try:
+                os.remove("total_uptime.txt")
+                f = open("total_uptime.txt", "w")
+                f.write(str(autonomi_service_date))
+                f.close()
+            except:
+                print("No file")
 
-      success = GaugeMetricFamily('service_metrics_collected','service metrics collected successfully', labels=_labels)
-      success.add_metric(_label_values, value=service_metrics_collected)
+        #Mark for tests
+        _labels='test'
+        _label_values='test'
+        g1 = GaugeMetricFamily('state','current state', labels=_labels)
+        g1.add_metric(_label_values, value=state)
 
-      result.extend([success])
-      return result
+        g2 = GaugeMetricFamily('current_state_uptime','seconds in current state', labels=_labels)
+        g2.add_metric(_label_values, value=state_uptime)
+
+        g3 = GaugeMetricFamily('total_uptime','seconds in last 24 hours', labels=_labels)
+        g3.add_metric(_label_values, value=total_uptime)
+
+        result.extend([g1, g2, g3])
+        service_metrics_collected = 1
+                                    
+        hostname = socket.gethostname()
+        service = '{{ _name }}'
+
+        _labels = ['device', 'instance', 'service']
+        _label_values = [device, hostname, service]
+
+        success = GaugeMetricFamily('service_metrics_collected','service metrics collected successfully', labels=_labels)
+        success.add_metric(_label_values, value=service_metrics_collected)
+
+        result.extend([success])
+        return result
 
 if __name__ == "__main__":
-  REGISTRY.unregister(GC_COLLECTOR)
-  REGISTRY.unregister(PLATFORM_COLLECTOR)
-  REGISTRY.unregister(PROCESS_COLLECTOR)
-  REGISTRY.register(MetricsCollector())
-
-  start_http_server({{ vars[role_name + '_metrics_port'] | int }})
-  while True:
-    time.sleep(30)
+    REGISTRY.unregister(GC_COLLECTOR)
+    REGISTRY.unregister(PLATFORM_COLLECTOR)
+    REGISTRY.unregister(PROCESS_COLLECTOR)
+    REGISTRY.register(MetricsCollector())
+    role_name='role_name'
+    start_http_server({{ vars[role_name + '_metrics_port'] | int }})
+    while True:
+        time.sleep(30)
