@@ -18,6 +18,7 @@
     dest: /opt/hychain/{{ hychain_version }}
 
 - name: Download binary to tmp
+  become: true
   ansible.builtin.get_url:
     url: "{{ hychain_download_url }}"
     dest: /tmp/hychain_service_{{ hychain_version }}.zip
