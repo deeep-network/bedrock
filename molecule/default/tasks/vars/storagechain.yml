@@ -3,14 +3,14 @@ fqcn: depin.services.storagechain
 # matches data structure from Netbox
 storagechain_credentials:
   custom_fields:
-    custom_name: nn-test-20tb
-    dns: tntnebbt2t.sc.nerdnode.io
-    nodeid: 66a7eccdc5e29b97a6b41d09
+    custom_name: molecule-dev
+    dns: vlduoullco.sc.nerdnode.io
+    nodeid: 66f194a4129b7d00ed2b8bc0
     username: anthony@nerdnode.io
-  plaintext: U2FsdGVkX1+q/LcwM0AbozAr2rPlonirGTtntUb6+Ziq8uziEIlXGous2wmlS55JAVLbENSOp92etQ07Ad/yB91UGgBRHZsrNJ4yh8qkfzU=
+  plaintext: U2FsdGVkX18EXOqDHdg/YVqW/MSX8O+u9EItqLEoToMaGNBiY0uHlLnoKwKd45uMkbvNaj4SWwbNV1VjlUtoL9U8C4A+CkLm1lwAXaoK1N8=
 
 service_vm:
-  disk: 20000
+  disk: 2000
 
 service_data:
   protocol:
