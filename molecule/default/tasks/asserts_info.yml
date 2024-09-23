@@ -5,25 +5,25 @@
   ansible.builtin.stat:
     path: /usr/local/bin/{{ item }}
     follow: true
-  loop: "{{ vars[test_role + '_programs'] }}"
+  loop: "{{ vars[role_name + '_programs'] }}"
   register: _binary_file
 
 - name: Get program directories
   ansible.builtin.stat:
     path: /opt/{{ item }}
     follow: true
-  loop: "{{ vars[test_role + '_programs'] }}"
+  loop: "{{ vars[role_name + '_programs'] }}"
   register: _program_dir
 
 - name: Get systemd service files
   ansible.builtin.stat:
     path: /etc/systemd/system/{{ item }}.service
     follow: true
-  loop: "{{ vars[test_role + '_programs'] }}"
+  loop: "{{ vars[role_name + '_programs'] }}"
   register: _service_file
 
 - name: Get pids
   community.general.pids:
     name: "{{ item }}"
-  loop: "{{ vars[test_role + '_programs'] }}"
+  loop: "{{ vars[role_name + '_programs'] }}"
   register: service_pids
