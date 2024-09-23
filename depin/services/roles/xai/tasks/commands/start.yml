@@ -1,11 +1,6 @@
 ---
-- name: Start XAI Sentry Node
-  hosts: all
-  become: yes
-
-  tasks:
-    # Run the XAI Sentry Node CLI
-    - name: Start XAI Sentry Node CLI
+  # Run the XAI Sentry Node CLI
+  - name: Start XAI Sentry Node CLI
       command: /usr/local/bin/sentry-node-cli-linux
       args:
         chdir: /usr/local/bin/

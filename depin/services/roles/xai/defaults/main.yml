@@ -1,5 +1,8 @@
-xai_version: "latest"
+---
 
+xai_cmd: "{{ depin_cmd | default('install') }}"
+xai_version: 1.1.14
+xai_metrics_port: 33002
 xai_download_url: "https://github.com/xai-foundation/sentry/releases/latest/download/sentry-node-cli-linux.zip"
 
 xai_install_path: "/opt/xai/{{ xai_version }}"

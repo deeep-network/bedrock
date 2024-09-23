@@ -1,40 +1,64 @@
 ---
-- name: Install XAI Sentry Node CLI
-  hosts: all
-  become: yes
+- name: Create program folder
+  become: true
+  ansible.builtin.file:
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+    dest: /opt/xai/{{ xai_version }}
 
-  tasks:
-    # Update the system package list
-    - name: System update
-      apt:
-        update_cache: yes
-        force_apt_get: yes
-        cache_valid_time: 3600
 
-    # Install required dependencies
-    - name: Install dependencies
-      apt:
-        name:
-          - curl
-          - unzip
-        state: present
+- name: Download binary to tmp
+  become: true
+  ansible.builtin.unarchive:
+    remote_src: true
+    src: "{{ xai_download_url }}"
+    dest: /tmp
+  failed_when: false
 
-    # Download XAI Sentry Node CLI
-    - name: Download XAI Sentry Node CLI
-      get_url:
-        url: https://github.com/xai-foundation/sentry/releases/latest/download/sentry-node-cli-linux.zip
-        dest: /tmp/sentry-node-cli-linux.zip
+- name: Find binary
+  become: true
+  ansible.builtin.find:
+    paths:
+      - /tmp
+      - "{{ xai_download_path | default('/tmp') }}"
+    patterns: 'sentry-node-cli-linux$'
+    use_regex: true
+    get_checksum: true
+    recurse: true
+  register: _download
 
-    # Extract the CLI package to the destination folder
-    - name: Extract XAI Sentry Node CLI
-      unarchive:
-        src: /tmp/sentry-node-cli-linux.zip
-        dest: /usr/local/bin/
-        remote_src: yes
-
-    # Set executable permissions for the CLI binary
-    - name: Set execute permissions
-      file:
-        path: /usr/local/bin/sentry-node-cli-linux
+- name: Install node
+  when: _download['files'] | length > 0
+  become: true
+  vars:
+    _files: |
+      {{ 
+        _download['files'] |
+        selectattr('checksum', 'equalto', xai_checksum | default(''))
+      }}
+    _path: "{{ (_files | first | default(_download['files'] | first))['path'] }}"
+  block:
+    - name: Copy required files
+      ansible.builtin.copy:
+        remote_src: true
+        src: "{{ _path }}"
+        dest: /opt/xai/{{ xai_version }}
         mode: '0755'
-        state: file
+
+
+    - name: Symlink binary to path
+      become: true
+      ansible.builtin.file:
+        src: /opt/xai/{{ xai_version }}/{{ _path | basename }}
+        path: /usr/local/bin/xai
+        mode: '0755'
+        owner: root
+        group: root
+        state: hard
+        force: true        
+
+- name: Start node
+  ansible.builtin.include_tasks:
+    file: commands/start.yml

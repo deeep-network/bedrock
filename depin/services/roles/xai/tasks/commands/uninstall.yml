@@ -1,14 +1,16 @@
 ---
 # Stop the service before uninstalling
-- name: Stop XAI Sentry Node
-  ansible.builtin.systemd:
-    name: xai-sentry
-    state: stopped
+
 
 # Remove the binary file for XAI Sentry Node
 - name: Remove XAI Sentry Node binary
   file:
-    path: /usr/local/bin/sentry-node-cli-linux
+    path: /opt/xai
+    state: absent
+
+- name: Remove XAI Sentry Node binary
+  file:
+    path: /usr/local/bin/xai
     state: absent
 
 # Remove the systemd service for XAI Sentry Node
