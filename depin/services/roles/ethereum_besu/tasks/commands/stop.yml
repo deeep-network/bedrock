@@ -1,0 +1,21 @@
+---
+# Stop ethereum_besu 
+- name: Stop ethereum_besu Sentry Node
+  ansible.builtin.systemd:
+    name: ethereum_besu
+    state: stopped
+    
+- name: Assert
+  when: "'molecule' in groups"
+  block:
+    - name: Get service info
+      become: true
+      ansible.builtin.systemd:
+        name: "ethereum_besu"
+      register: _ethereum_besu
+
+    - name: Check service
+      ansible.builtin.assert:
+        that:
+          - _ethereum_besu['status']['ActiveState']=='inactive'
+        quiet: true

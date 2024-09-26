@@ -1,0 +1,72 @@
+---
+- name: Install dependencies
+  become: true
+  ansible.builtin.apt:
+    name:
+      - openjdk-21-jdk
+    state: present
+    update_cache: true
+
+- name: Create program folder
+  become: true
+  ansible.builtin.file:
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+    dest: /opt/ethereum_besu/{{ ethereum_besu_version }}
+
+
+- name: Download binary to tmp
+  become: true
+  ansible.builtin.unarchive:
+    remote_src: true
+    src: "{{ ethereum_besu_download_url }}"
+    dest: /tmp
+  failed_when: false
+
+- name: Find binary
+  become: true
+  ansible.builtin.find:
+    paths:
+      - /tmp
+      - "{{ ethereum_besu_download_path | default('/tmp') }}"
+    patterns: 'besu$'
+    use_regex: true
+    get_checksum: true
+    recurse: true
+  register: _download
+
+- name: Install node
+  when: _download['files'] | length > 0
+  become: true
+  vars:
+    _files: |
+      {{ 
+        _download['files'] |
+        selectattr('checksum', 'equalto', ethereum_besu_checksum | default(''))
+      }}
+  block:
+    - name: Copy required files
+      ansible.builtin.copy:
+        remote_src: true
+        src: /tmp/besu-{{ ethereum_besu_version }}/
+        dest: /opt/ethereum_besu/{{ ethereum_besu_version }}
+        mode: '0755'       
+
+    - name: Copy config file
+      become: true
+      ansible.builtin.copy:
+        src: templates/config
+        dest: /opt/ethereum_besu/{{ ethereum_besu_version }}
+        mode: '0755'  
+
+    - name: Create systemd file
+      ansible.builtin.template:
+        src: templates/systemd.service.j2
+        dest: /etc/systemd/system/ethereum_besu.service
+        mode: '0644'
+
+- name: Start node
+  ansible.builtin.include_tasks:
+    file: commands/start.yml

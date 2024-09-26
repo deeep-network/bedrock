@@ -1,0 +1,63 @@
+---
+- name: Install metrics
+  vars:
+    _name: "{{ role_name | replace('_', '-') }}"
+  when: vars[role_name + '_cmd'] != 'uninstall'
+  become: true
+  block:
+    - name: Ensure directory exists
+      ansible.builtin.file:
+        path: /etc/deeep-network/collectors
+        state: directory
+        mode: '0755'
+        recurse: true
+
+    - name: Install script
+      ansible.builtin.template:
+        src: templates/collector.py.j2
+        dest: /etc/deeep-network/collectors/{{ _name }}.py
+        mode: '0744'
+
+    - name: Install service
+      ansible.builtin.template:
+        src: templates/metrics.service.j2
+        dest: /etc/systemd/system/collector-{{ _name }}.service
+        mode: '0644'
+
+
+    - name: Update prometheus.conf
+      vars:
+        _block: |
+          - name: {{ _name }}
+            url: 'http://127.0.0.1:{{ vars[role_name + '_metrics_port'] }}/metrics'
+            update_every: 900
+      ansible.builtin.blockinfile:
+        path: /etc/netdata/go.d/prometheus.conf
+        append_newline: true
+        block: |
+          {{ _block | indent(4, first=true) }}
+
+    - name: Start service
+      ansible.builtin.systemd_service:
+        name: collector-{{ _name }}
+        enabled: true
+        daemon_reload: true
+        state: started
+
+- name: Uninstall metrics
+  when: vars[role_name + '_cmd'] == 'uninstall'
+  become: true
+  block:
+    - name: Stop service
+      ansible.builtin.systemd_service:
+        name: "{{ _name }}"
+        enabled: false
+        state: stopped
+
+    - name: Remove files
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - /etc/systemd/system/collector-{{ _name }}.service
+        - /etc/deeep-network/collectors/{{ _name }}.py

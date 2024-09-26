@@ -1,0 +1,16 @@
+---
+# Stop the service before uninstalling
+- name: Stop
+  ansible.builtin.include_tasks: commands/stop.yml
+
+# Remove the binary file for ethereum_besu Sentry Node
+- name: Remove systemd service for ethereum_besu Sentry
+  file:
+    path: /opt/ethereum_besu
+    state: absent
+
+# Remove the systemd service for ethereum_besu Sentry Node
+- name: Remove systemd service for ethereum_besu Sentry
+  file:
+    path: /etc/systemd/system/ethereum_besu.service
+    state: absent
