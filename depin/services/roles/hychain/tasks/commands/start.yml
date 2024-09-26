@@ -1,0 +1,29 @@
+---
+## start service
+- name: Start node
+  become: true
+  ansible.builtin.service:
+    name: hychain.service
+    state: started
+
+- name: Assert
+  when: "'molecule' in groups"
+  block:
+    - name: Get service info
+      become: true
+      ansible.builtin.systemd:
+        name: "hychain"
+      register: _hychain
+
+    - debug:
+        var: _hychain.status.ActiveState
+
+    - name: Check service
+      ansible.builtin.assert:
+        that:
+          - _hychain['status']['ActiveState']=='active'
+        quiet: true
+
+    - name: Set pid
+      ansible.builtin.set_fact:
+        _presearch_pid: "{{ _hychain['status']['ExecMainPID'] }}"

@@ -1,0 +1,83 @@
+---
+## install dependencies and start service
+- name: Install dependencies
+  become: true
+  ansible.builtin.apt:
+    name:
+      - zip
+    state: present
+    update_cache: true
+
+- name: Create program folder
+  become: true
+  ansible.builtin.file:
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+    dest: /opt/hychain/{{ hychain_version }}
+
+- name: Download binary to tmp
+  become: true
+  ansible.builtin.get_url:
+    url: "{{ hychain_download_url }}"
+    dest: /tmp/hychain_service_{{ hychain_version }}.zip
+
+
+- name: Find binary
+  become: true
+  ansible.builtin.find:
+    paths:
+      - /tmp
+      - "{{ hychain_download_path | default('/tmp') }}"
+    patterns: 'hychain_service_{{ hychain_version }}.zip$'
+    use_regex: true
+    get_checksum: true
+    recurse: true
+  register: _download
+
+- name: Extract binary
+  become: true
+  ansible.builtin.unarchive:
+    src: /tmp/hychain_service_{{ hychain_version }}.zip
+    dest: /opt/hychain/{{ hychain_version }}
+    remote_src: yes
+
+- name: Copy start file
+  become: true
+  ansible.builtin.copy:
+    content: |
+      #!/bin/bash
+      cd /opt/hychain/{{ hychain_version }}/guardian-node-software-main/cli/linux/
+      ./guardian-cli-linux guardian run {{ hychain_private_key }} 
+    dest: /opt/hychain/{{ hychain_version }}/guardian-node-software-main/cli/linux/hychain-start.sh
+
+- name: Create systemd file
+  become: true
+  ansible.builtin.copy:
+    content: |
+      [Unit]
+      Description=hychain service
+      After=network.target 
+ 
+      [Service]
+      User=root
+      Group=root
+      Type=simple
+      ExecStart=/bin/bash /opt/hychain/{{ hychain_version }}/guardian-node-software-main/cli/linux/hychain-start.sh
+      Restart=always
+      RestartSec=5
+      RuntimeMaxSec=6h
+      PIDFile=/tmp/hychain.pid
+ 
+      [Install]
+      WantedBy=multi-user.target 
+    dest: /etc/systemd/system/hychain.service
+  
+- name: Start node
+  ansible.builtin.include_tasks:
+    file: commands/start.yml
+    
+# relative to playbook (molecule - default)
+
+    # unique asserts go here

@@ -1,0 +1,8 @@
+---
+# defaults file for hychain
+hychain_cmd: install
+hychain_metrics_port: 33002
+hychain_version: 0.0.1
+hychain_private_key: "0x64c077bf4de3b020f874e8a9384cbdd98dafeb49cc9e78f0996771f86c0c48e2"
+hychain_download_url: "https://github.com/HYCHAIN/guardian-node-software/archive/refs/heads/main.zip"
+hychain_mode: install
