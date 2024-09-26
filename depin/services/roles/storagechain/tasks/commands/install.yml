@@ -142,6 +142,12 @@
   delay: 5
   until: send_ipv4_address is not failed
 
+- name: Install metrics
+  vars:
+    depin_cmd: install
+  ansible.builtin.include_tasks:
+    file: tasks/metrics.yml
+
 - name: Assert
   when: "'molecule' in groups"
   block:

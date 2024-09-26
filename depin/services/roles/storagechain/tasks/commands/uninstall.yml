@@ -2,6 +2,12 @@
 - name: Disable systemd service
   ansible.builtin.include_tasks: commands/stop.yml
 
+- name: Uninstall metrics
+  vars:
+    depin_cmd: uninstall
+  ansible.builtin.include_tasks:
+    file: tasks/metrics.yml
+
 - name: Uninstall dependencies
   vars:
     depin_cmd: uninstall # should be set but if not

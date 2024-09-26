@@ -1,15 +1,21 @@
 ---
-## stop and uninstall service (remove all associated files)
-- name: Stop service hychain.service
-  become: true
-  ansible.builtin.systemd_service:
-    name: hychain
-    state: stopped
-    enabled: false
-    daemon_reload: true
+- name: Disable systemd service
+  ansible.builtin.include_tasks: commands/stop.yml
+
+- name: Uninstall metrics
+  vars:
+    depin_cmd: uninstall
+  ansible.builtin.include_tasks:
+    file: tasks/metrics.yml
 
 - name: Delete content & directory
   become: true
   ansible.builtin.file:
     state: absent
-    path: /opt/hychain
+    path: "{{ uninstall_file }}"
+  loop:
+    - /etc/systemd/system/hychain.service
+    - /usr/local/bin/hychain
+    - /opt/hychain/{{ hychain_version }}
+  loop_control:
+    loop_var: uninstall_file

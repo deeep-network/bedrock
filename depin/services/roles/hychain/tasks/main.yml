@@ -1,4 +1,4 @@
 ---
-- name: Hychain {{ hychain_mode }}
+- name: Hychain {{ hychain_cmd }}
   ansible.builtin.include_tasks:
-    file: commands/{{ hychain_mode }}.yml
+    file: commands/{{ hychain_cmd }}.yml

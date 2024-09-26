@@ -4,6 +4,7 @@
   become: true
   ansible.builtin.service:
     name: hychain.service
+    enabled: false
     state: stopped
 
 - name: Assert
