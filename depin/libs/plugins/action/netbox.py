@@ -4,6 +4,7 @@ from __future__ import (absolute_import, division, print_function)
 __metaclass__ = type
 
 import os
+import re
 import json
 import functools
 from pprint import pformat
@@ -29,6 +30,16 @@ else:
 
 # https://github.com/python/cpython/issues/74570#issuecomment-1093748531
 os.environ['no_proxy']="*"
+
+def safe_json(j):
+    try:
+        return json.loads(j)
+    except json.JSONDecodeError as e:
+        # Add quotes around values
+        j = re.sub(r': *([^",\{\}\[\]]+)', r': "\1"', j)
+        # Remove any double quotes that got added around existing quoted strings
+        j = j.replace('""', '"')
+    return json.loads(j)
 
 def get_endpoint(netbox, app):
     """
@@ -119,7 +130,7 @@ class ActionModule(ActionBase):
         )
 
         if isinstance(netbox_custom_headers, str):
-            netbox_custom_headers = json.loads(netbox_custom_headers)
+            netbox_custom_headers = safe_json(netbox_custom_headers)
 
         netbox_app_name = (
             self._task.args.get('app')
@@ -142,7 +153,7 @@ class ActionModule(ActionBase):
         )
 
         if isinstance(netbox_custom_headers, str):
-            netbox_custom_headers = json.loads(netbox_custom_headers)
+            netbox_custom_headers = safe_json(netbox_custom_headers)
 
         netbox_secrets_session_key = (
             self._task.args.get("session_key", None)
@@ -163,7 +174,7 @@ class ActionModule(ActionBase):
         )
 
         if isinstance(netbox_secrets_userkey, str):
-            netbox_secrets_userkey = json.loads(netbox_secrets_userkey)
+            netbox_secrets_userkey = safe_json(netbox_secrets_userkey)
 
         session = requests.Session()
         session.verify = netbox_ssl_verify
