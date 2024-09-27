@@ -53,9 +53,9 @@ class MetricsCollector(Collector):
             services_pids = proc.stdout.readlines()
 
             try:
-                f = open("total_uptime.txt", "r")
+                f = open("ethereum_besu_total_uptime.txt", "r")
                 besu_service_date = json.loads(f.read().replace("'", '"'))
-                os.remove("total_uptime.txt")
+                os.remove("ethereum_besu_total_uptime.txt")
             except:
                 print("No file")
                 besu_service_date={}
@@ -83,7 +83,7 @@ class MetricsCollector(Collector):
                     date_str = mounth + "-" + day + "-" + years + " " + time_str
                     besu_service_date[date_str] = run_uptime
             total_uptime=self.total_uptime_count(besu_service_date)
-            f = open("total_uptime.txt", "w")
+            f = open("ethereum_besu_total_uptime.txt", "w")
             f.write(str(besu_service_date))
             f.close()    
 
@@ -93,8 +93,8 @@ class MetricsCollector(Collector):
             state = 0
             state_uptime =0
             try:
-                if os.path.isfile('./total_uptime.txt'):
-                    f = open("total_uptime.txt", "r")
+                if os.path.isfile('./ethereum_besu_total_uptime.txt'):
+                    f = open("ethereum_besu_total_uptime.txt", "r")
                     besu_service_date = json.loads(f.read().replace("'", '"'))
                     total_uptime=self.total_uptime_count(besu_service_date)
                     print(total_uptime)

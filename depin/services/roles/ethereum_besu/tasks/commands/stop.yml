@@ -1,6 +1,6 @@
 ---
 # Stop ethereum_besu 
-- name: Stop ethereum_besu Sentry Node
+- name: Stop ethereum_besu 
   ansible.builtin.systemd:
     name: ethereum_besu
     state: stopped
