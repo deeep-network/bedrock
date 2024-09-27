@@ -1,6 +1,6 @@
 - name: Create interface
   block:
-    - name: Set interface
+    - name: Get interface
       vars:
         _filter: "virtual_machine_id={{ vm_id }} name=vm-{{ vm_id }}-eth0"
       ansible.builtin.set_fact:

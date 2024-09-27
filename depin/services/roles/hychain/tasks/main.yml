@@ -1,0 +1,4 @@
+---
+- name: Hychain {{ hychain_cmd }}
+  ansible.builtin.include_tasks:
+    file: commands/{{ hychain_cmd }}.yml

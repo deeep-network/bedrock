@@ -8,11 +8,6 @@
 
 - name: Block for error handling
   block:
-    - name: Metrics
-      ansible.builtin.include_role:
-        name: "{{ test_role }}"
-        tasks_from: metrics.yml
-
     - name: Install
       ansible.builtin.include_role:
         name: "{{ test_role }}"
