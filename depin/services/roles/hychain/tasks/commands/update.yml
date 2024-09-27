@@ -1,5 +1,4 @@
 ---
-## uninstall and install service
 - name: Uninstall node
   ansible.builtin.include_tasks:
     file: commands/uninstall.yml

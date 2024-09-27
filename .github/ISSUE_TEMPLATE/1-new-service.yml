@@ -2,7 +2,7 @@ name: New Service
 description: Track the completion of a New Service
 title: "[New]: "
 labels: ["new", "enhancement", "service"]
-projects: ["deeep-network/1", "deeep-network/4"]
+projects: ["deeep-network/1"]
 assignees:
   - anthonyra
 body:
@@ -78,7 +78,7 @@ body:
 
         ### Logs
 
-        - [ ] logs are collected via syslog
+        - [ ] logs are collected via journald
         
         ### 'galaxy.yml'
 
@@ -91,6 +91,7 @@ body:
 
         - [ ] all `galaxy.yml` dependencies are added to `molecule/default/requirements.yml` for tests
         - [ ] passes default tests
+        - [ ] passes metrics tests
 
         ### Registry
 
