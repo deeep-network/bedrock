@@ -5,6 +5,8 @@
   ansible.builtin.service:
     name: autonomi.service
     state: stopped
+    enabled: false
+    daemon_reload: true
 
 - name: Assert
   when: "'molecule' in groups"

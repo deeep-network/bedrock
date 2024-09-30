@@ -2,3 +2,7 @@
 - name: Autonomi {{ service_cmd | default(autonomi_cmd) }}
   ansible.builtin.include_tasks:
     file: commands/{{ service_cmd | default(autonomi_cmd) }}.yml
+    
+- name: Ensure metrics is installed
+  ansible.builtin.include_tasks:
+    file: metrics.yml
