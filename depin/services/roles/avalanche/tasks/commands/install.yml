@@ -11,6 +11,17 @@
     mode: '0755'
     dest: /opt/avalanche/{{ avalanche_version }}
 
+- name: Verify that the program folder was created
+  ansible.builtin.stat:
+    path: /opt/avalanche/{{ avalanche_version }}
+  register: avalanche_program_folder
+
+- name: Assert that the program folder exists
+  ansible.builtin.assert:
+    that:
+      - avalanche_program_folder.stat.exists
+      - avalanche_program_folder.stat.isdir
+
 - name: Download AvalancheGo
   become: true
   ansible.builtin.get_url:
@@ -33,6 +44,17 @@
     path: /opt/avalanche/{{ avalanche_version }}/avalanchego
     mode: '0755'
 
+- name: Verify that the AvalancheGo binary exists
+  ansible.builtin.stat:
+    path: /opt/avalanche/{{ avalanche_version }}/avalanchego
+  register: avalanchego_binary
+
+- name: Assert that the AvalancheGo binary exists
+  ansible.builtin.assert:
+    that:
+      - avalanchego_binary.stat.exists
+      - avalanchego_binary.stat.mode | int == 755
+
 - name: Symlink avalanchego binary
   become: true
   ansible.builtin.file:
@@ -47,6 +69,16 @@
     src: templates/systemd.service.j2
     dest: /etc/systemd/system/avalanchego.service
     mode: '0644'
+
+- name: Verify that the AvalancheGo service file exists
+  ansible.builtin.stat:
+    path: /etc/systemd/system/avalanchego.service
+  register: avalanchego_service_file
+
+- name: Assert that the AvalancheGo service file exists
+  ansible.builtin.assert:
+    that:
+      - avalanchego_service_file.stat.exists
 
 - name: Reload systemd daemon
   become: true

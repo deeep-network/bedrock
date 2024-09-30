@@ -1,5 +1,4 @@
 ---
-## restart service
 
 - name: Get current service info
   become: true
