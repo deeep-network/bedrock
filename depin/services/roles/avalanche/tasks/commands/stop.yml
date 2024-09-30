@@ -1,19 +1,6 @@
 ---
 ## stop service
 
-- name: Assert start
-  when: "'molecule' in groups"
-  block:
-    - name: Get service info
-      become: true
-      ansible.builtin.systemd:
-        name: "avalanchego"
-      register: _avalanchego
-
-    - name: Debug service status before stop
-      debug:
-        var: _avalanchego.status
-
 - name: Stop node
   become: true
   ansible.builtin.service:
