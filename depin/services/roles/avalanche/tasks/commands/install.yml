@@ -1,0 +1,64 @@
+# tasks/commands/install.yml
+
+---
+
+- name: Create program folder
+  become: true
+  ansible.builtin.file:
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+    dest: /opt/avalanche/{{ avalanche_version }}
+
+- name: Download AvalancheGo
+  become: true
+  ansible.builtin.get_url:
+    url: "{{ avalanche_download_url }}"
+    dest: /tmp/avalanchego.tar.gz
+    mode: '0644'
+
+- name: Extract AvalancheGo
+  become: true
+  ansible.builtin.unarchive:
+    src: /tmp/avalanchego.tar.gz
+    dest: /opt/avalanche/{{ avalanche_version }}
+    remote_src: yes
+    extra_opts:
+      - --strip-components=1
+
+- name: Ensure avalanchego binary is executable
+  become: true
+  ansible.builtin.file:
+    path: /opt/avalanche/{{ avalanche_version }}/avalanchego
+    mode: '0755'
+
+- name: Symlink avalanchego binary
+  become: true
+  ansible.builtin.file:
+    src: /opt/avalanche/{{ avalanche_version }}/avalanchego
+    dest: /usr/local/bin/avalanchego
+    state: link
+    force: true
+
+- name: Create systemd service
+  become: true
+  ansible.builtin.template:
+    src: templates/systemd.service.j2
+    dest: /etc/systemd/system/avalanchego.service
+    mode: '0644'
+
+- name: Reload systemd daemon
+  become: true
+  ansible.builtin.systemd:
+    daemon_reload: yes
+
+- name: Start Avalanche node
+  ansible.builtin.include_tasks:
+    file: commands/start.yml
+
+- name: Install metrics
+  vars:
+    depin_cmd: install
+  ansible.builtin.include_tasks:
+    file: tasks/metrics.yml
