@@ -50,7 +50,7 @@
   block:
     - name: Stop service
       ansible.builtin.systemd_service:
-        name: "{{ _name }}"
+        name: "collector-{{ _name }}"
         enabled: false
         state: stopped
 
