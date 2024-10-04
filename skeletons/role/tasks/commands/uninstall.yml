@@ -14,6 +14,6 @@
   block:
     - name: Common install asserts
       ansible.builtin.include_tasks:
-        file: tasks/asserts_uninstall.yml
+        file: tests/uninstall.yml
 
     # unique asserts go here

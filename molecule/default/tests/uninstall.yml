@@ -1,6 +1,6 @@
 - name: Gather info
   ansible.builtin.include_tasks:
-    file: asserts_info.yml
+    file: tests/gather_info.yml
 
 - name: Check common stats
   vars:

@@ -8,6 +8,8 @@ platforms:
     image: ubuntu:noble
 provisioner:
   name: ansible
+  env:
+    ANSIBLE_COLLECTIONS_PATH: $HOME/.ansible/collections:../shared/collections
   playbooks:
     create: ../shared/substrate/${MOLECULE_SUBSTRATE:-orbstack}/create.yml
     destroy: ../shared/substrate/${MOLECULE_SUBSTRATE:-orbstack}/destroy.yml
