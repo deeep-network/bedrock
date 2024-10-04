@@ -6,6 +6,7 @@ ipfs_download_url:
   "https://github.com/ipfs/kubo/releases/download/{{ ipfs_version }}\
   /kubo_{{ ipfs_version }}_{{ ansible_system | lower }}-{{ system_architecture }}.tar.gz"
 
+ipfs_dir: "{{ ipfs_dir }}"
 ipfs_home_dir: /home/ipfs
 
 # systemd

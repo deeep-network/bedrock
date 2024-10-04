@@ -6,7 +6,7 @@
     owner: root
     group: root
     mode: '0755'
-    dest: /opt/ipfs/{{ ipfs_version }}
+    dest: "{{ ipfs_dir }}"
 
 - name: Download binary to tmp
   become: true
@@ -35,13 +35,13 @@
   ansible.builtin.copy:
     remote_src: true
     src: "{{ (_files | first | default(_download['files'] | first))['path'] }}"
-    dest: /opt/ipfs/{{ ipfs_version }}
+    dest: "{{ ipfs_dir }}"
     mode: preserve
 
 - name: Symlink binary to path
   become: true
   ansible.builtin.file:
-    src: /opt/ipfs/{{ ipfs_version }}/ipfs
+    src: "{{ ipfs_dir }}/ipfs"
     path: /usr/local/bin/ipfs
     mode: '0755'
     owner: root
@@ -49,139 +49,6 @@
     state: hard
     force: true
 
-- name: Make user group
-  become: true
-  ansible.builtin.group:
-    state: present
-    name: ipfs
-
-- name: Make user
-  become: true
-  ansible.builtin.user:
-    state: present
-    name: ipfs
-    group: ipfs
-    groups:
-      - sudo
-    shell: /bin/bash
-    home: "{{ ipfs_home_dir }}"
-    comment: IPFS user
-    system: true
-
-- name: Add sudoer permissions to user
-  become: true
-  ansible.builtin.copy:
-    dest: /etc/sudoers.d/80-ipfs-user
-    content: "ipfs ALL=(ALL) NOPASSWD:ALL"
-    mode: '0440'
-
-- name: Setup IPFS
-  become: true
-  become_user: ipfs
-  block:
-    - name: Init IPFS
-      ansible.builtin.command: ipfs init --empty-repo --profile server
-      args:
-        creates: $HOME/.ipfs/config
-      register: init_ipfs
-
-    - name: Get default config
-      ansible.builtin.slurp:
-        src: $HOME/.ipfs/config
-      register: _slurp_default_config
-
-    - name: Get remote config
-      become: false
-      delegate_to: localhost
-      when: ipfs_config_url is defined
-      ansible.builtin.get_url:
-        checksum: "{{ ipfs_config_checksum | default(omit) }}"
-        url: "{{ ipfs_config_url }}"
-        dest: /tmp
-        mode: '0644'
-      register: _remote_config_file
-
-    - name: Set remote config
-      when: _remote_config_file is not skipped
-      ansible.builtin.set_fact:
-        _remote_config: "{{ lookup('ansible.builtin.file', _remote_config_file.dest) }}"
-
-    - name: Create custom config
-      vars:
-        _default_config: "{{ _slurp_default_config['content'] | b64decode }}"
-        _role_default_config: "{{ lookup('ansible.builtin.template', 'templates/config.j2') }}"
-      ansible.builtin.set_fact:
-        ipfs_config:
-          "{{ _default_config |
-              combine(_remote_config | default({}), recursive=true) |
-              combine(_role_default_config, recursive=true) |
-              combine(ipfs_custom_config | default({}), recursive=true)
-          }}"
-
-    - name: Save custom config
-      become_user: root
-      ansible.builtin.copy:
-        content: "{{ ipfs_config | to_nice_json }}"
-        dest: /opt/ipfs/{{ ipfs_version }}/config
-        mode: '0644'
-    
-    - name: Symlink modified config
-      ansible.builtin.file:
-        src: /opt/ipfs/{{ ipfs_version }}/config
-        path: $HOME/.ipfs/config
-        mode: '0644'
-        owner: root
-        group: root
-        state: link
-        force: true
-
-    - name: Update datastore_spec
-      vars:
-        update_spec:
-          mounts: |
-            {{ 
-              ipfs_datastore_spec['mounts'] |
-              depin.libs.dict_flatten(keys='child') |
-              ansible.utils.remove_keys(target=['prefix', 'sync', 'compression'])
-            }}
-      ansible.builtin.copy:
-        content: |
-          {{ 
-            ipfs_datastore_spec |
-            combine(update_spec, recursive=true) |
-            to_json(sort_keys=true, separators=(',',':'))
-          }}
-        dest: $HOME/.ipfs/datastore_spec
-        mode: '0644'
-
-    - name: Update SHARDING for blocks
-      ansible.builtin.copy:
-        content: "{{ ipfs_datastore_flatfs_shard_func }}"
-        dest: $HOME/.ipfs/{{ (ipfs_datastore_spec['mounts'] | first)['mountpoint'] }}/SHARDING
-        mode: '0644'
-
-    - name: Save swarm.key if doesn't exist
-      when: ipfs_private_network
-      ansible.builtin.copy:
-        # either get swarm key from parent role or default to DeEEP private IPFS network
-        src: "{{ ansible_parent_role_paths | default([]) | first | default('.') }}/files/swarm.key"
-        dest: $HOME/.ipfs
-        mode: '0644'
-        force: false
-
-- name: Install systemd service
-  become: true
-  ansible.builtin.template:
-    src: templates/systemd.service.j2
-    dest: /etc/systemd/system/ipfs.service
-    owner: root
-    group: root
-    mode: '0644'
-
-- name: Start systemd service
-  become: true
-  ansible.builtin.systemd_service:
-    name: ipfs
-    daemon_reload: true
-    enabled: true
-    state: started
+- name: Setup
+  ansible.builtin.include_tasks:
+    file: commands/setup.yml

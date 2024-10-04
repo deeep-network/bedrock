@@ -207,7 +207,7 @@
     # lazy attempt to use role since raw
     - name: Install Netdata
       ansible.builtin.command:
-        cmd: ansible localhost -m ansible.builtin.include_role -a name=depin.core.netdata
+        cmd: ansible localhost -m ansible.builtin.include_role -a name=depin.libs.netdata
       changed_when: false
       failed_when: false
 
@@ -216,6 +216,6 @@
     # so that you can call it at random also
     - name: Update Netbox
       ansible.builtin.command:
-        cmd: ansible-playbook depin.core.netbox
+        cmd: ansible-playbook depin.libs.netbox
       changed_when: false
       failed_when: false

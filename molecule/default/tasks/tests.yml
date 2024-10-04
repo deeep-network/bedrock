@@ -1,37 +1,20 @@
 ---
 - name: Load test variables
-  vars:
-    _file: "{{ test_role | split('.') | last }}.yml"
   ansible.builtin.include_vars:
-    file: "{{ _file }}"
+    file: "{{ test_role | split('.') | last }}.yml"
   failed_when: false
 
 - name: Block for error handling
   block:
-    - name: Install
+    - name: Run tests
+      vars:
+        molecule_tests: install,reset,stop,restart,uninstall
+        depin_cmd: "{{ _test }}"
       ansible.builtin.include_role:
         name: "{{ test_role }}"
-        tasks_from: commands/install.yml
-
-    - name: Reset
-      ansible.builtin.include_role:
-        name: "{{ test_role }}"
-        tasks_from: commands/reset.yml
-
-    - name: Stop
-      ansible.builtin.include_role:
-        name: "{{ test_role }}"
-        tasks_from: commands/stop.yml
-
-    - name: Restart
-      ansible.builtin.include_role:
-        name: "{{ test_role }}"
-        tasks_from: commands/restart.yml
-
-    - name: Uninstall
-      ansible.builtin.include_role:
-        name: "{{ test_role }}"
-        tasks_from: commands/uninstall.yml
+      loop: "{{ molecule_tests | split(',') | default(molecule_tests) }}"
+      loop_control:
+        loop_var: _test
   rescue:
     - name: Error message
       ansible.builtin.debug:

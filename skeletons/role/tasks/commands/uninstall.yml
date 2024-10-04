@@ -3,10 +3,8 @@
   ansible.builtin.include_tasks: commands/stop.yml
 
 - name: Uninstall metrics
-  vars:
-    depin_cmd: uninstall
-  ansible.builtin.include_tasks:
-    file: tasks/metrics.yml
+  ansible.builtin.include_role:
+    name: depin.core.metrics
 
 ## uninstall service and remove all associated files
 

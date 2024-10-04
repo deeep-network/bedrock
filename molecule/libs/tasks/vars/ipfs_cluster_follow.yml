@@ -1,4 +1,4 @@
-test_role: depin.libs.ipfs_cluster_follow
+test_role: depin.libs.ipfs_cluster
 
 # override role variables
-ipfs_cluster_follow_cluster_peername: 'molecule-test-name'
+ipfs_cluster_peername: 'molecule-test-name'

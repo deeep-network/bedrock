@@ -4,9 +4,9 @@
 
 - name: Check service facts
   vars:
-    _name: "{{ item['stat']['path'] | basename }}"
+    _name: "{{ _service['stat']['path'] | basename }}"
   when:
-    - item['stat']['exists']
+    - _service['stat']['exists']
   ansible.builtin.assert:
     that:
       - ansible_facts['services'][_name] is defined
@@ -15,22 +15,24 @@
     quiet: true
   loop: "{{ _service_file['results'] }}"
   loop_control:
-    label: "{{ item['stat']['path'] | basename }}"
+    loop_var: _service
+    label: "{{ _service['stat']['path'] | basename }}"
 
 - name: Check common stats
   ansible.builtin.assert:
     that:
-      - item['stat']['exists']
+      - assert_stat_file['stat']['exists']
     quiet: true
-  loop: "{{ _binary_file['results'] + _program_dir['results'] + _service_file['results'] }}"
+  loop: "{{ _binary_file['results'] + [_program_dir] + _service_file['results'] }}"
   loop_control:
-    label: "{{ item['stat']['path'] }}"
+    loop_var: assert_stat_file
+    label: "{{ assert_stat_file['stat']['path'] }}"
 
 - name: Check pids
   ansible.builtin.assert:
     that:
-      - item['pids'] | length > 0
+      - (_pids['results'] | selectattr('cmd', 'contains', _program)) | length > 0
     quiet: true
-  loop: "{{ service_pids['results'] }}"
+  loop: "{{ lookup('ansible.builtin.vars', role_name + '_programs') }}"
   loop_control:
-    label: "{{ item['invocation']['module_args']['name'] }}"
+    loop_var: _program

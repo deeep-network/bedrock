@@ -1,0 +1,13 @@
+---
+# installer:
+#   version:
+#   download:
+#   programs:
+#     - name: program
+#       version: test
+#       checksum: somecheck
+#     - program
+
+installer_program_name: "{{ installer_program['name'] | default(installer_program) }}"
+installer_program_version: "{{ installer['version'] | default(installer_program['version']) | default('current') }}"
+installer_program_dir: /opt/{{ ansible_parent_role_names | last | split('.') | last }}/{{ installer_program_version }}
