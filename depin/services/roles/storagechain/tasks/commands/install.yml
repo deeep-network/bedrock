@@ -127,4 +127,4 @@
     # relative to playbook (molecule - default)
     - name: Common install asserts
       ansible.builtin.include_tasks:
-        file: tasks/asserts_install.yml
+        file: tests/install.yml

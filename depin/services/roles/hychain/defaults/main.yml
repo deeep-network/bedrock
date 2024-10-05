@@ -1,5 +1,4 @@
 ---
-hychain_metrics_port: 33003
 hychain_cmd: "{{ depin_cmd | default('install') }}"
 
 hychain_version: 0.0.1

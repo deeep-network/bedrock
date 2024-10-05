@@ -36,4 +36,4 @@
   block:
     - name: Common uninstall asserts
       ansible.builtin.include_tasks:
-        file: tasks/asserts_uninstall.yml
+        file: tests/uninstall.yml

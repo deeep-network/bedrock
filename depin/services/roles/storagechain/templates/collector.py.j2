@@ -50,6 +50,6 @@ if __name__ == "__main__":
   REGISTRY.unregister(PROCESS_COLLECTOR)
   REGISTRY.register(MetricsCollector())
 
-  start_http_server({{ lookup('ansible.builtin.vars', metrics_parent_role_name + '_metrics_port') | int }})
+  start_http_server({{ metrics_port[metrics_parent_role_name] }})
   while True:
     time.sleep(30)

@@ -17,16 +17,17 @@ storagechain_ipfs_cluster_remote_config: http://94.72.127.176:8080/ipns/k51qzi5u
 storagechain_version: v3.1.5
 storagechain_dir: /opt/storagechain/{{ storagechain_version }}
 
-storagechain_ipfs_cluster_args: "{{ storagechain_email }}:{{ storagechain_password }}:{{ storagechain_node_id }}"
 storagechain_cluster_secret: a89fe67688f00ee7cb5eb25084f9971174433cd15a6349783a2c268b8bed730a
-storagechain_default_dns: "{{ storagechain_node_id }}.sc.nerdnode.io"
 
-storagechain_node_name: "{{ storagechain_credentials['custom_fields']['custom_name'] }}"
-storagechain_node_id: "{{ storagechain_credentials['custom_fields']['nodeid'] }}"
-storagechain_email: "{{ storagechain_credentials['custom_fields']['username'] }}"
-storagechain_dns: "{{ storagechain_credentials['custom_fields']['dns'] | default(storagechain_default_dns) }}"
-storagechain_password: "{{ storagechain_credentials['plaintext'] }}"
-storagechain_node_size: "{{ service_vm['disk'] }}GB"
+storagechain_node_name: "{{ lookup('env', 'STORAGECHAIN_CUSTOM_NAME') | default(storagechain_credentials['custom_fields']['custom_name']) }}"
+storagechain_node_id: "{{ lookup('env', 'STORAGECHAIN_NODE_ID') | default(storagechain_credentials['custom_fields']['nodeid']) }}"
+storagechain_default_dns: "{{ storagechain_node_id }}.sc.nerdnode.io"
+storagechain_dns: "{{ lookup('env', 'STORAGECHAIN_DNS') | default(storagechain_credentials['custom_fields']['dns']) | default(storagechain_default_dns) }}"
+storagechain_email: "{{ lookup('env', 'STORAGECHAIN_USERNAME') | default(storagechain_credentials['custom_fields']['username']) }}"
+storagechain_password: "{{ lookup('env', 'STORAGECHAIN_PASSWORD') | default(storagechain_credentials['plaintext']) }}"
+storagechain_ipfs_cluster_args: "{{ storagechain_email }}:{{ storagechain_password }}:{{ storagechain_node_id }}"
+
+storagechain_node_size: "2000GB"
 
 storagechain_firewall:
   protocol:
@@ -39,5 +40,3 @@ storagechain_firewall:
     - 9094
     - 9095
     - 9096
-
-storagechain_metrics_port: 33004
