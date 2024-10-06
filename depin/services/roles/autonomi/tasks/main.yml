@@ -1,0 +1,4 @@
+---
+- name: Autonomi {{ autonomi_cmd }}
+  ansible.builtin.include_tasks:
+    file: commands/{{ autonomi_cmd }}.yml

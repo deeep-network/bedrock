@@ -1,4 +1,6 @@
 ---
+installer_parent_role_name: "{{ ansible_parent_role_names | last | split('.') | last }}"
+
 # installer:
 #   version:
 #   download:
@@ -6,7 +8,12 @@
 #     - name: program
 #       version: test
 #       checksum: somecheck
-#     - program
+#     - program_name
+
+installer: # noqa var-naming[no-role-prefix]
+  version: "{{ lookup('ansible.builtin.vars', installer_parent_role_name + '_version') }}"
+  download: "{{ lookup('ansible.builtin.vars', installer_parent_role_name + '_download_urls') }}"
+  programs: "{{ lookup('ansible.builtin.vars', installer_parent_role_name + '_programs') }}"
 
 installer_program_name: "{{ installer_program['name'] | default(installer_program) }}"
 installer_program_version: "{{ installer['version'] | default(installer_program['version']) | default('current') }}"

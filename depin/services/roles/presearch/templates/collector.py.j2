@@ -16,8 +16,7 @@ except ImportError as imp_exc:
 else:
     LXD_UTILS_IMPORT_ERROR = None
 
-# https://docs.presearch.io/nodes/troubleshooting-and-maintenance/backup-method-for-linux
-pub_key_file = "{{ presearch_pub_key_file }}"
+
 
 class MetricsCollector(Collector):
     """Collector for Gala Node information"""
