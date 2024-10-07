@@ -19,3 +19,28 @@
     - /opt/hychain/{{ hychain_version }}
   loop_control:
     loop_var: uninstall_file
+
+- name: Reload systemd daemon
+  become: true
+  ansible.builtin.systemd:
+    daemon_reload: yes
+    
+- name: Verify that the hychain service file is removed
+  ansible.builtin.stat:
+    path: /etc/systemd/system/hychain.service
+  register: hychain_service_file
+
+- name: Assert that the hychain service file does not exist
+  ansible.builtin.assert:
+    that:
+      - not hychain_service_file.stat.exists
+
+- name: Verify that the hychain program directory is removed
+  ansible.builtin.stat:
+    path: /opt/hychain/{{ hychain_version }}
+  register: hychain_directory
+
+- name: Assert that the hychain program directory does not exist
+  ansible.builtin.assert:
+    that:
+      - not hychain_directory.stat.exists
