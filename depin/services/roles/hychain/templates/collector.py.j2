@@ -21,7 +21,7 @@ else:
 
 class MetricsCollector(Collector):
     """Collector for Gala Node information"""
-    def total_uptime_count(sefl, hychain_service_date):
+    def total_uptime_count(self, hychain_service_date):
         total_uptime=0
         for x in hychain_service_date:
             state_uptime_list = hychain_service_date[x].split(":")
@@ -64,7 +64,7 @@ class MetricsCollector(Collector):
                 p = pid_decription.split()[0]
                 if p == pid_id:
                     print(pid_decription)
-                    mounth = pid_decription.split()[3]
+                    month = pid_decription.split()[3]
                     day = pid_decription.split()[4]
                     time_str = pid_decription.split()[5]
                     years = pid_decription.split()[6]
