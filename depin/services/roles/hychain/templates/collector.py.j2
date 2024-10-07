@@ -2,8 +2,7 @@
 import os
 import socket
 import time
-import os
-import time
+from pathlib import Path
 import subprocess
 from subprocess import check_output
 import json
@@ -110,8 +109,17 @@ class MetricsCollector(Collector):
 
         #Mark for tests
         device = 'molecule'
-        service = '{{ _name }}'
+        # fetch device hostname
+        # @note - LXD specific feature
+        {% if not molecule_inventory is defined -%}
+            if LXD_UTILS_IMPORT_ERROR is None:
+            device = lxd_get("1.0/config/user.location")['value']
+            device = device['value']
+        {% endif %}
+
         hostname = socket.gethostname()
+        service = Path(__file__).stem
+
         _labels = ['device', 'instance', 'service']
         _label_values = [device, hostname, service]
         
@@ -138,6 +146,6 @@ if __name__ == "__main__":
     REGISTRY.unregister(PROCESS_COLLECTOR)
     REGISTRY.register(MetricsCollector())
 
-    start_http_server({{ vars[role_name + '_metrics_port'] | int }})
+    start_http_server({{ metrics_port[metrics_parent_role_name] }})
     while True:
         time.sleep(30)

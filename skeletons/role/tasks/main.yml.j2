@@ -1,4 +1,7 @@
 ---
 - name: {{ role_name | replace('_', ' ') | capitalize }} {{'{{ ' }}{{ role_name }}{{ '_cmd }}' }}
+  vars:
+    cmd_file: commands/{{'{{ ' }}{{ role_name }}{{ '_cmd }}' }}.yml
+  when: cmd_file is file
   ansible.builtin.include_tasks:
-    file: commands/{{'{{ ' }}{{ role_name }}{{ '_cmd }}' }}.yml
+    file: "{{ "{{ cmd_file }}" }}"

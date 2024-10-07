@@ -1,4 +1,0 @@
----
-- name: In-a-Dyn {{ inadyn_cmd }}
-  ansible.builtin.include_tasks:
-    file: commands/{{ inadyn_cmd }}.yml

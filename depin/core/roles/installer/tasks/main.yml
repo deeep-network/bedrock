@@ -1,0 +1,20 @@
+---
+- name: Download
+  vars:
+    installer_download_url: "{{ _url }}"
+  when: installer['download'] is defined
+  ansible.builtin.include_tasks:
+    file: commands/download.yml
+  loop: "{{ (installer['download'] is iterable) | ternary(installer['download'], [installer['download']]) }}"
+  loop_control:
+    loop_var: _url
+
+- name: Install
+  vars:
+    installer_program: "{{ _program }}"
+  when: installer['programs'] is defined
+  ansible.builtin.include_tasks:
+    file: commands/install.yml
+  loop: "{{ installer['programs'] }}"
+  loop_control:
+    loop_var: _program

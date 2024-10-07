@@ -1,0 +1,20 @@
+- name: Gather info
+  ansible.builtin.include_tasks:
+    file: tests/gather_info.yml
+
+- name: Check common stats
+  vars:
+    _files: "{{ _binary_file['results'] + [_program_dir] + _service_file['results'] }}"
+  ansible.builtin.assert:
+    that:
+      - not (_files | map(attribute='stat.exists')) is any
+    quiet: true
+
+- name: Check pids
+  ansible.builtin.assert:
+    that:
+      - (_pids['results'] | selectattr('cmd', 'contains', _program)) | length > 0
+    quiet: true
+  loop: "{{ lookup('ansible.builtin.vars', role_name + '_programs') }}"
+  loop_control:
+    loop_var: _program
