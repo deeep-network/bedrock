@@ -12,7 +12,6 @@
   become: true
   ansible.builtin.find:
     paths:
-      - /tmp
       - "{{ installer_download_path | default('/tmp') }}"
     patterns: "{{ installer_program_name }}$"
     use_regex: true
@@ -28,7 +27,8 @@
     src: "{{ program_file['path'] }}"
     dest: "{{ installer_program_dir }}"
     mode: preserve
-  loop: "{{ _download['files'] | unique }}"
+  register: installed_programs
+  loop: "{{ _download['files'] }}"
   loop_control:
     loop_var: program_file
     label: "{{ program_file['path'] | basename }}"
