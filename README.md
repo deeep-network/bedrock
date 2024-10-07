@@ -4,17 +4,21 @@
 
 ## Install pipx
 
-### macos
+We leverage pipx to ensure that all programs and librarys we depend on can be installed globally and isolated with venvs out of the box. It's also supported by MacOS, Linux, and Windows.
+
+### MacOS
 
 ```bash
 brew install pipx
 ```
 
-### linux
+### Linux
 
 ```bash
 apt install pipx
 ```
+
+### More
 
 > https://pipx.pypa.io/stable/installation/
 
@@ -23,6 +27,9 @@ apt install pipx
 ```bash
 pipx install ansible-core
 pipx inject ansible-core requests pynetbox pyutils pytz netaddr
+```
+
+```bash
 pipx install ansible-lint
 ```
 
@@ -30,33 +37,39 @@ pipx install ansible-lint
 pipx install --include-deps ansible-sign
 ```
 
-## Molecule Setup
+## Install Molecule
 
 ```bash
 pipx install --include-deps molecule
 ```
 
+We leverage the ability for Molecule to manage and control local VM's using a virtualization software of choice.
+
+On the DeEEP Device - the Ansible Controller is the Device itself which then pushes to the individually managed VM's within Incus. Each VM also becomes and independent Ansible Controller. This setup requires every role to be `localhost` orientated. Allowing VMs the ability to configure themselves when necessary.
+
+> [!NOTE] For testing, we skip the Incus layer. Meaning the Ansible Controller for tests is your local machine. Pushing directly to the VM running locally. This is meant to simplify the process. Especially since MacOS support for Incus in a VM doesn't work as intended.
+
 ### linux/windows
 
-1. install [multipass](https://multipass.run/install)
+#### [multipass](https://multipass.run/install)
 
 > intel Macs can also use this method
 
 ### macos
 
-1. install [orbstack](https://docs.orbstack.dev/install)
+#### [orbstack](https://docs.orbstack.dev/install)
 
-    ```bash
-      brew install orbstack
-    ```
+```bash
+brew install orbstack
+```
 
-### experimental
+### linux/windows/macos
 
-1. install [UTM](https://mac.getutm.app/)
+#### [UTM](https://mac.getutm.app/)
 
-    ```bash
-      brew install --cask utm
-    ```
+```bash
+brew install --cask utm
+```
 
 ## Using Molecule
 
@@ -66,15 +79,23 @@ pipx install --include-deps molecule
 
     > If you've already ran molecule before updating this variable you may need to use `molecule destroy` or `molecule reset` for it to take effect
 
-3. copy the `example.env` to `.env` and update the contents
+3. Setup Pulumi ESC
 
-4. test all services
+    1. Install [Pulumi ESC](https://www.pulumi.com/docs/esc/download-install/)
+
+    2. Install [Direnv](https://direnv.net/docs/installation.html)
+
+    3. Login to Pulumi ESC - request access to `deeep-network/dev/services` (DM @anthonyra)
+
+    4. run `direnv allow .` in root directory
+
+4. test **all** services
 
     ```bash
     molecule converge
     ```
 
-5. test individual service role
+5. test an **individual** service
 
     ```bash
     molecule converge -- -e='fqcn=test.yml'
@@ -83,13 +104,13 @@ pipx install --include-deps molecule
     molecule converge -- -e=@tasks/vars/services/test.yml
     ```
 
-6. test all libs role
+6. test **all** libs
 
     ```bash
     molecule converge -s libs
     ```
 
-7. test individual libs role
+7. test an **individual** lib
 
     ```bash
     molecule converge -s libs -- -e='fqcn=depin.libs.test'
