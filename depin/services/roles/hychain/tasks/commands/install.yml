@@ -1,79 +1,32 @@
 ---
-- name: Create program folder
-  become: true
-  ansible.builtin.file:
-    state: directory
-    owner: root
-    group: root
-    mode: '0755'
-    dest: /opt/hychain/{{ hychain_version }}
-
-- name: Download binary to tmp
-  become: true
-  ansible.builtin.unarchive:
-    remote_src: true
-    src: "{{ hychain_download_url }}"
-    dest: /tmp
-  failed_when: false
-
-- name: Find binary
-  become: true
-  ansible.builtin.find:
-    paths:
-      - /tmp
-      - "{{ hychain_download_path | default('/tmp') }}"
-    patterns: 'guardian-cli-linux$'
-    use_regex: true
-    get_checksum: true
-    recurse: true
-  register: _download
-
 - name: Install node
-  when: _download['files'] | length > 0
+  ansible.builtin.include_role:
+    name: depin.core.installer
+
+- name: Copy validation engine
+  when: "'guardian-cli-linux' in installed_program['src']"
   become: true
-  vars:
-    _files: |
-      {{ 
-        _download['files'] |
-        selectattr('checksum', 'equalto', hychain_checksum | default(''))
-      }}
-    _path: "{{ (_files | first | default(_download['files'] | first))['path'] }}"
-  block:
-    - name: Copy required files
-      ansible.builtin.copy:
-        remote_src: true
-        src: "{{ hychain_file }}"
-        dest: /opt/hychain/{{ hychain_version }}
-        mode: '0755'
-      loop:
-        - "{{ _path | dirname }}/validation-engine"
-        - "{{ _path }}"
-      loop_control:
-        loop_var: hychain_file
+  ansible.builtin.copy:
+    src: "{{ installed_program['src'] | dirname }}/validation-engine"
+    dest: "{{ installed_program['dest'] | dirname }}"
+    remote_src: true
+    mode: preserve
+  loop: "{{ installed_programs['results'] }}"
+  loop_control:
+    loop_var: installed_program
+    label: linux
 
-    - name: Symlink binary to path
-      become: true
-      ansible.builtin.file:
-        src: /opt/hychain/{{ hychain_version }}/{{ _path | basename }}
-        path: /usr/local/bin/hychain
-        mode: '0755'
-        owner: root
-        group: root
-        state: hard
-        force: true
-
-    - name: Create systemd file
-      ansible.builtin.template:
-        src: templates/systemd.service.j2
-        dest: /etc/systemd/system/hychain.service
-        mode: '0644'
-      
-    - name: Start node
-      ansible.builtin.include_tasks:
-        file: commands/start.yml
+- name: Create systemd file
+  become: true
+  ansible.builtin.template:
+    src: templates/systemd.service.j2
+    dest: /etc/systemd/system/hychain.service
+    mode: '0644'
+  
+- name: Start node
+  ansible.builtin.include_tasks:
+    file: commands/start.yml
 
 - name: Install metrics
-  vars:
-    depin_cmd: install
-  ansible.builtin.include_tasks:
-    file: tasks/metrics.yml
+  ansible.builtin.include_role:
+    name: depin.core.metrics
