@@ -1,10 +1,10 @@
 ![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/deeep-network/ansible_collections/badge)
 
-# Development
-
-## Install pipx
+# Setting Up Local Machine
 
 We leverage pipx to ensure that all programs and librarys we depend on can be installed globally and isolated with venvs out of the box. It's also supported by MacOS, Linux, and Windows.
+
+## Install pipx
 
 ### MacOS
 
@@ -18,7 +18,7 @@ brew install pipx
 apt install pipx
 ```
 
-### More
+### Other Install Methods
 
 > https://pipx.pypa.io/stable/installation/
 
@@ -43,43 +43,73 @@ pipx install --include-deps ansible-sign
 pipx install --include-deps molecule
 ```
 
-We leverage the ability for Molecule to manage and control local VM's using a virtualization software of choice.
+## Post Installation
 
-On the DeEEP Device - the Ansible Controller is the Device itself which then pushes to the individually managed VM's within Incus. Each VM also becomes and independent Ansible Controller. This setup requires every role to be `localhost` orientated. Allowing VMs the ability to configure themselves when necessary.
+```bash
+pipx ensurepath
+```
 
-> [!NOTE] For testing, we skip the Incus layer. Meaning the Ansible Controller for tests is your local machine. Pushing directly to the VM running locally. This is meant to simplify the process. Especially since MacOS support for Incus in a VM doesn't work as intended.
+> You can either log out of the shell and log back in or run the following command to refresh your PATH
 
-### linux/windows
+```bash
+source ~/.bashrc
+or
+source ~/.zshrc
+```
 
-#### [multipass](https://multipass.run/install)
+---
 
-> intel Macs can also use this method
+## Setup for Local Virtual Machines
 
-### macos
+On the DeEEP Device - the main Ansible Controller is the Device itself which in turn can manage the VM's (via Incus). Each VM is also an independent Ansible Controller for itself. This setup requires every role to be `localhost` first when developed. This isn't the normal way Ansible is meant to be used (push model) so there are some gotchas and things we do that are slightly out of the norm. Being `localhost` first however provides the VMs the ability to configure themselves when necessary. It's also important to not that if it works via `localhost` it will always work being pushed (not always the case in reverse).
 
-#### [orbstack](https://docs.orbstack.dev/install)
+> [!NOTE] For testing, we skip the Incus layer. Meaning the Ansible Controller for tests is your local machine (acting like the Device). Pushing directly to the VM running locally (managed by Orbstack, multipass, KVM, or LXD). This is meant to simplify the testing process. Especially since MacOS support for intel based CPU architecture is not well supported.
+
+As such, depending on your development environment pick the most convenient virtualization software. Usually based on OS and CPU
+
+---
+
+### macos (apple silicon)
+
+#### orbstack - [docs](https://docs.orbstack.dev/install)
 
 ```bash
 brew install orbstack
 ```
 
+---
+
+### linux/windows/macos (intel)
+
+#### multipass - [docs](https://multipass.run/install)
+
+```bash
+brew install --cask multipass
+```
+
+```bash
+snap install multipass
+```
+
+---
+
 ### linux/windows/macos
 
-#### [UTM](https://mac.getutm.app/)
+#### UTM - [docs](https://mac.getutm.app/)
 
 ```bash
 brew install --cask utm
 ```
 
-## Using Molecule
-
 ---
 
-2. set the `MOLECULE_SUBSTRATE` environment variable to the one of your choice
+## Using Molecule
+
+1. set the `MOLECULE_SUBSTRATE` environment variable to the one of your choice
 
     > If you've already ran molecule before updating this variable you may need to use `molecule destroy` or `molecule reset` for it to take effect
 
-3. Setup Pulumi ESC
+2. Setup Pulumi ESC
 
     1. Install [Pulumi ESC](https://www.pulumi.com/docs/esc/download-install/)
 
@@ -89,30 +119,28 @@ brew install --cask utm
 
     4. run `direnv allow .` in root directory
 
-4. test **all** services
+3. test **all** services
 
     ```bash
     molecule converge
     ```
 
-5. test an **individual** service
+4. test an **individual** service
 
     ```bash
-    molecule converge -- -e='fqcn=test.yml'
     molecule converge -- -e='fqcn=test'
     molecule converge -- -e='fqcn=depin.services.test'
-    molecule converge -- -e=@tasks/vars/services/test.yml
     ```
 
-6. test **all** libs
+5. test **all** libs
 
     ```bash
     molecule converge -s libs
     ```
 
-7. test an **individual** lib
+6. test an **individual** lib
 
     ```bash
+    molecule converge -s libs -- -e='fqcn=test'
     molecule converge -s libs -- -e='fqcn=depin.libs.test'
-    molecule converge -s libs -- -e=@tasks/vars/libs/test.yml
     ```
