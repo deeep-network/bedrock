@@ -107,14 +107,14 @@ jobs:
           requirements.yml || yq -n '.collections += [{"name": strenv(NAME)}]' > requirements.yml
       -
         name: Upload requirements file
-        uses: actions/upload-artifact@604373da6381bf24206979c74d06a550515601b9 # v4.4.1
+        uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # v4.4.3
         with:
           name: requirements-yml
           path: ./requirements.yml
           overwrite: true
       -
         name: Upload artifact
-        uses: actions/upload-artifact@604373da6381bf24206979c74d06a550515601b9 # v4.4.1
+        uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # v4.4.3
         with:
           name: ${{ steps.collection.outputs.name }}
           path: ./artifacts/
@@ -133,7 +133,7 @@ jobs:
 
       - 
         name: Merge Artifacts
-        uses: actions/upload-artifact/merge@604373da6381bf24206979c74d06a550515601b9 # v4.4.1
+        uses: actions/upload-artifact/merge@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # v4.4.3
         with:
           name: ansible-collections
           delete-merged: true
