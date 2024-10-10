@@ -79,7 +79,7 @@ class MetricsCollector(Collector):
                         minutes = int(state_uptime_dic[1])
                         seconds = int(state_uptime_dic[2])
                     state_uptime=seconds+minutes*60+hours*3600
-                    date_str = mounth + "-" + day + "-" + years + " " + time_str
+                    date_str = month + "-" + day + "-" + years + " " + time_str
                     hychain_service_date[date_str] = run_uptime
             total_uptime=self.total_uptime_count(hychain_service_date)
             f = open("hychain_total_uptime.txt", "w")
