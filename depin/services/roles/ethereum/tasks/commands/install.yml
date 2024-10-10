@@ -59,7 +59,7 @@
     paths:
       - /tmp
       - "{{ ethereum_teku_download_path | default('/tmp') }}"
-    patterns: 'besu$'
+    patterns: 'teku$'
     use_regex: true
     get_checksum: true
     recurse: true

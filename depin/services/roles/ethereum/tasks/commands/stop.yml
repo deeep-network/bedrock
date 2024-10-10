@@ -41,7 +41,7 @@
       debug:
         var: ethereum_teku.status
 
-    - name: Check teku ervice
+    - name: Check teku service
       ansible.builtin.assert:
         that:
           - ethereum_teku['status']['ActiveState']=='inactive'
