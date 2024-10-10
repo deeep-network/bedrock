@@ -1,0 +1,34 @@
+- name: Get service facts
+  ansible.builtin.service_facts:
+
+- name: Get binary files
+  ansible.builtin.stat:
+    path: /usr/local/bin/{{ _program }}
+    follow: true
+  loop: "{{ lookup('ansible.builtin.vars', role_name + '_programs') }}"
+  loop_control:
+    loop_var: _program
+  register: _binary_file
+
+- name: Get program directory
+  ansible.builtin.stat:
+    path: /opt/{{ role_name }}/{{ lookup('ansible.builtin.vars', role_name + '_version') }}
+    follow: true
+  register: _program_dir
+
+- name: Get systemd service files
+  ansible.builtin.stat:
+    path: /etc/systemd/system/{{ _program }}.service
+    follow: true
+  loop: "{{ lookup('ansible.builtin.vars', role_name + '_programs') }}"
+  loop_control:
+    loop_var: _program
+  register: _service_file
+
+- name: Get pids
+  become: true
+  ansible.builtin.command: systemctl show -P MainPID {{ _program }}
+  loop: "{{ lookup('ansible.builtin.vars', role_name + '_programs') }}"
+  loop_control:
+    loop_var: _program
+  register: _pids

@@ -1,0 +1,7 @@
+---
+## stop and start service
+- name: Stop
+  ansible.builtin.include_tasks: commands/stop.yml
+
+- name: Start
+  ansible.builtin.include_tasks: commands/start.yml

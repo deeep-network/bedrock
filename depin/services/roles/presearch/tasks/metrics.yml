@@ -2,7 +2,8 @@
 - name: Install metrics
   vars:
     _name: "{{ role_name | replace('_', '-') }}"
-  when: vars[role_name + '_cmd'] != 'uninstall'
+    _metrics_port: presearch_metrics_port
+  when: presearch_cmd != 'uninstall'
   become: true
   block:
     - name: Ensure directory exists
@@ -24,19 +25,15 @@
         dest: /etc/systemd/system/collector-{{ _name }}.service
         mode: '0644'
 
-    # # https://docs.presearch.io/nodes/api
-    # # Requests with stats (stats=true): Up to 4 requests per hour
     - name: Update prometheus.conf
       vars:
         _block: |
-          - name: {{ _name }}
-            url: 'http://127.0.0.1:{{ vars[role_name + '_metrics_port'] }}/metrics'
-            update_every: 900
+              - name: {{ _name }}
+                url: 'http://127.0.0.1:{{ vars[_metrics_port] }}/metrics'
       ansible.builtin.blockinfile:
         path: /etc/netdata/go.d/prometheus.conf
         append_newline: true
-        block: |
-          {{ _block | indent(4, first=true) }}
+        block: "{{ _block | indent(4, first=true) }}"
 
     - name: Start service
       ansible.builtin.systemd_service:
@@ -46,12 +43,14 @@
         state: started
 
 - name: Uninstall metrics
-  when: vars[role_name + '_cmd'] == 'uninstall'
+  vars:
+    _name: "{{ role_name | replace('_', '-') }}"
+  when: presearch_cmd == 'uninstall'
   become: true
   block:
     - name: Stop service
       ansible.builtin.systemd_service:
-        name: "{{ _name }}"
+        name: collector-{{ _name }}
         enabled: false
         state: stopped
 

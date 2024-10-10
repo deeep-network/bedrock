@@ -3,10 +3,15 @@
   hosts: localhost
   gather_facts: false
   tasks:
+    - name: Get ESC from Pulumi
+      ansible.builtin.command: esc open deeep-network/dev/services --format dotenv
+      changed_when: false
+      register: pulumi_esc
+
     - name: Create cloud-init file
       ansible.builtin.template:
         src: ../../../depin/core/playbooks/templates/user-data.yml.j2
-        dest: ../cloud-init.yml
+        dest: ../../cloud-init.yml
         mode: '0644'
 
     - name: Create VM (recreate if exists)
@@ -16,7 +21,7 @@
         name: "{{ _vm['name'] }}"
         cpus: 2
         memory: 2G
-        cloud_init: ../cloud-init.yml
+        cloud_init: ../../cloud-init.yml
         image: |
           {{
             ('ubuntu' in _vm['image']) |

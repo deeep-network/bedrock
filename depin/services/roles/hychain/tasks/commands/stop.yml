@@ -1,0 +1,23 @@
+---
+## stop service
+- name: Stop node
+  become: true
+  ansible.builtin.service:
+    name: hychain.service
+    enabled: false
+    state: stopped
+
+# - name: Assert
+#   when: "'molecule' in groups"
+#   block:
+#     - name: Get service info
+#       become: true
+#       ansible.builtin.systemd:
+#         name: "hychain"
+#       register: _hychain
+
+#     - name: Check service
+#       ansible.builtin.assert:
+#         that:
+#           - _hychain['status']['ActiveState']=='inactive'
+#         quiet: true

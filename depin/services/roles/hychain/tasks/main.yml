@@ -1,0 +1,7 @@
+---
+- name: Hychain {{ hychain_cmd }}
+  vars:
+    cmd_file: "{{ role_path }}/tasks/commands/{{ hychain_cmd }}.yml"
+  when: cmd_file is file
+  ansible.builtin.include_tasks:
+    file: "{{ cmd_file }}"

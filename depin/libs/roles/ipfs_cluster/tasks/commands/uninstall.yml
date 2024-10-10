@@ -1,0 +1,31 @@
+---
+- name: Disable systemd service
+  become: true
+  ansible.builtin.systemd_service:
+    name: ipfs-cluster-{{ ipfs_cluster_type }}
+    enabled: false
+    state: stopped
+  failed_when: false
+
+- name: Remove files
+  become: true
+  ansible.builtin.file:
+    path: "{{ _remove }}"
+    state: absent
+    force: true
+    follow: true
+  loop:
+    - /usr/local/bin/ipfs-cluster-{{ ipfs_cluster_type }}
+    - /etc/systemd/system/ipfs-cluster-{{ ipfs_cluster_type }}.service
+    - /opt/ipfs-cluster-{{ ipfs_cluster_type }}/
+  loop_control:
+    loop_var: _remove
+
+- name: Remove {{ ipfs_cluster_config_dir }}
+  become: true
+  become_user: ipfs
+  ansible.builtin.file:
+    path: $HOME/{{ ipfs_cluster_config_dir }}/
+    state: absent
+    force: true
+    follow: true

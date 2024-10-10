@@ -1,0 +1,61 @@
+---
+## install dependencies and service
+- name: Install programs
+  ansible.builtin.include_role:
+    name: depin.core.installer
+
+- name: Install Safenode Manager
+  ansible.builtin.command:
+    argv:
+      - /usr/local/bin/safeup
+      - node-manager
+      - --no-modify-shell-profile
+      # @todo - needs bugfix to work
+      # - --path=/opt/autonomi/{{ autonomi_version }}
+      - --version={{ autonomi_node_manager_version }}
+    creates: /opt/autonomi/{{ autonomi_version }}/safenode-manager
+
+# @note - required because safeup node-manager --path doesn't work
+- name: Copy safenode-manager
+  become: true
+  ansible.builtin.copy:
+    src: /home/ansible/.local/bin/safenode-manager
+    dest: /opt/autonomi/{{ autonomi_version }}/safenode-manager
+    owner: root
+    group: root
+    mode: '0644'
+    remote_src: true
+
+- name: Symlink safenode-manager
+  become: true
+  ansible.builtin.file:
+    src: /opt/autonomi/{{ autonomi_version }}/safenode-manager
+    path: /usr/local/bin/safenode-manager
+    mode: '0755'
+    owner: root
+    group: root
+    state: hard
+    force: true
+
+- name: Create Services
+  ansible.builtin.command: 
+    argv:
+      - /usr/local/bin/safenode-manager
+      - add
+      - --count={{ autonomi_count }}
+      - --peer={{ autonomi_seed_peer }}
+
+- name: Create systemd file
+  become: true
+  ansible.builtin.template:
+    src: templates/systemd.service.j2
+    dest: /etc/systemd/system/autonomi.service
+    mode: '0644'
+
+- name: Start node
+  ansible.builtin.include_tasks:
+    file: commands/start.yml
+
+- name: Install metrics
+  ansible.builtin.include_role:
+    name: depin.core.metrics

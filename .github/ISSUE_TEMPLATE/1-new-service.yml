@@ -91,6 +91,7 @@ body:
 
         - [ ] all `galaxy.yml` dependencies are added to `molecule/default/requirements.yml` for tests
         - [ ] passes default tests
+        - [ ] passes metrics tests
 
         ### Registry
 

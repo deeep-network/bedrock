@@ -114,6 +114,7 @@ RETURN = """
 """
 
 import os
+import re
 import json
 import functools
 from pprint import pformat
@@ -140,6 +141,22 @@ else:
 
 # https://github.com/python/cpython/issues/74570#issuecomment-1093748531
 os.environ['no_proxy']="*"
+
+def safe_json(s):
+    try:
+        return json.loads(s)
+    except json.JSONDecodeError as e:
+        # Replace single quotes with double quotes
+        s = s.replace("'", '"')
+        # Ensure property names are in double quotes
+        s = re.sub(r'(\s*)(\w+)(\s*:)', r'\1"\2"\3', s)
+        # Remove trailing commas
+        s = re.sub(r',\s*([\]}])', r'\1', s)
+
+        try:
+            return json.loads(s)
+        except json.JSONDecodeError as e:
+            return s, str(e)
 
 def get_endpoint(netbox, fqan):
     """
@@ -282,7 +299,8 @@ class LookupModule(LookupBase):
         )
 
         if isinstance(netbox_custom_headers, str):
-            netbox_custom_headers = json.loads(netbox_custom_headers)
+            netbox_custom_headers = safe_json(netbox_custom_headers)
+        Display().vvvv("%s", (netbox_custom_headers))
 
         netbox_ssl_verify = kwargs.get("validate_certs", True)
 
@@ -299,14 +317,15 @@ class LookupModule(LookupBase):
             or os.getenv("NETBOX_SECRETS_PERSERVE_KEY")
             or True
         )
-            
+
         netbox_secrets_userkey = (
             kwargs.get('userkey')
             or os.getenv("NETBOX_SECRETS_USERKEY")
         )
 
         if isinstance(netbox_secrets_userkey, str):
-            netbox_secrets_userkey = json.loads(netbox_secrets_userkey)
+            netbox_secrets_userkey = safe_json(netbox_secrets_userkey)
+        Display().vvvv("%s", (netbox_custom_headers))
 
         try:
             netbox_secrets_session_key = variables['ansible_facts']['netbox_session_key']
@@ -333,7 +352,6 @@ class LookupModule(LookupBase):
             )
 
         if netbox_custom_headers:
-            Display().vvvv("%s" % (netbox_custom_headers))
             session.headers = netbox_custom_headers
         netbox.http_session = session
 
