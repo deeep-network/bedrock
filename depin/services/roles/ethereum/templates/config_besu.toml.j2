@@ -1,0 +1,10 @@
+network="{{ ethereum_network }}"
+rpc-http-enabled=true
+rpc-http-host="{{ ethereum_besu_rpc_http_host }}" 
+rpc-http-cors-origins=["*"]
+rpc-ws-enabled=true
+rpc-ws-host="0.0.0.0" 
+host-allowlist=["*"]
+engine-host-allowlist=["*"]
+engine-rpc-enabled=true
+engine-jwt-secret="/opt/ethereum_besu/{{ ethereum_besu_version }}/jwtsecret.hex"    

@@ -1,0 +1,16 @@
+---
+
+ethereum_besu_cmd: "{{ depin_cmd | default('install') }}"
+ethereum_besu_version: 24.9.1
+ethereum_teku_version: 24.8.0
+ethereum_besu_metrics_port: 33006
+ethereum_tesk_metrics_port: 33007
+ethereum_besu_download_url: "https://github.com/hyperledger/besu/releases/download/24.9.1/besu-24.9.1.zip"
+ethereum_teku_download_url: "https://artifacts.consensys.net/public/teku/raw/names/teku.zip/versions/24.8.0/teku-24.8.0.zip"
+
+# Node configuration
+
+ethereum_network: holesky
+ethereum_besu_rpc_http_host: 0.0.0.0
+ethereum_public_ip: ""
+ethereum_besu_log_dir: "/var/log/besu"

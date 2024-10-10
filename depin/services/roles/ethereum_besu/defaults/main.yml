@@ -1,6 +1,0 @@
----
-
-ethereum_besu_cmd: "{{ depin_cmd | default('install') }}"
-ethereum_besu_version: 24.9.1
-ethereum_besu_metrics_port: 33006
-ethereum_besu_download_url: "https://github.com/hyperledger/besu/releases/download/24.9.1/besu-24.9.1.zip"

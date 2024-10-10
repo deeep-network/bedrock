@@ -1,0 +1,8 @@
+network: {{ ethereum_network }}
+ee-endpoint: "http://localhost:8551"
+ee-jwt-secret-file: "/opt/ethereum_teku/{{ ethereum_teku_version }}/jwtsecret.hex"
+metrics-enabled: true
+rest-api-enabled: true
+checkpoint-sync-url: "https://checkpoint-sync.holesky.ethpandaops.io"
+p2p-advertised-ip: "{{ ethereum_public_ip }}"
+metrics-enabled: true

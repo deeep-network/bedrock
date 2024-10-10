@@ -10,6 +10,12 @@
     path: /opt/ethereum_besu
     state: absent
 
+- name: Remove systemd service for ethereum_besu 
+  become: true
+  file:
+    path: /opt/ethereum_teku
+    state: absent
+
 # Remove the systemd service for ethereum_besu 
 - name: Delete content & directory
   become: true
