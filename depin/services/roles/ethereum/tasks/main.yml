@@ -1,8 +1,8 @@
 ---
-- name: "ethereum_besu {{ ethereum_besu_cmd }}"
+- name: "ethereum_besu {{ ethereum_cmd }}"
   ansible.builtin.include_tasks:
-    file: "commands/{{ ethereum_besu_cmd }}.yml"
+    file: "commands/{{ ethereum_cmd }}.yml"
 
-#- name: Ensure metrics is installed
-#  ansible.builtin.include_tasks:
-#    file: metrics.yml
+- name: Ensure metrics is installed
+  ansible.builtin.include_tasks:
+    file: metrics.yml

@@ -2,6 +2,7 @@
 - name: Install metrics
   vars:
     _name: "{{ role_name | replace('_', '-') }}"
+    _metrics_port: ethereum_custom_metrics_port
   when: vars[role_name + '_cmd'] != 'uninstall'
   become: true
   block:
@@ -28,14 +29,12 @@
     - name: Update prometheus.conf
       vars:
         _block: |
-          - name: {{ _name }}
-            url: 'http://127.0.0.1:{{ vars[role_name + '_metrics_port'] }}/metrics'
-            update_every: 900
+              - name: {{ _name }}
+                url: 'http://127.0.0.1:{{ vars[_metrics_port] }}/metrics'
       ansible.builtin.blockinfile:
         path: /etc/netdata/go.d/prometheus.conf
         append_newline: true
-        block: |
-          {{ _block | indent(4, first=true) }}
+        block: "{{ _block | indent(4, first=true) }}"
 
     - name: Start service
       ansible.builtin.systemd_service:

@@ -7,7 +7,7 @@ import time
 import subprocess
 from subprocess import check_output
 import json
-
+import re
 
 from prometheus_client import start_http_server, REGISTRY, GC_COLLECTOR, PLATFORM_COLLECTOR, PROCESS_COLLECTOR
 from prometheus_client.core import GaugeMetricFamily
@@ -22,7 +22,7 @@ else:
 
 class MetricsCollector(Collector):
     """Collector for Gala Node information"""
-    def total_uptime_count(sefl, besu_service_date):
+    def total_uptime_count(self, besu_service_date):
         total_uptime=0
         for x in besu_service_date:
             state_uptime_list = besu_service_date[x].split(":")
@@ -41,11 +41,24 @@ class MetricsCollector(Collector):
         result = []
         service_metrics_collected = 1
 
-        service_name='java'
+        service_name = "ethereum_besu"
         try:
-            pid_id= str(check_output(["pidof",service_name]).decode("utf-8")).replace("\n","")
-            print("PID of process: " + pid_id)
-            state = 1
+            p =  subprocess.Popen(["systemctl", "status",  service_name], stdout=subprocess.PIPE)
+            (output, err) = p.communicate()
+            output = output.decode('utf-8')
+            print()
+            y= re.search("Active: .*active", output) 
+            status= y.group().split(" ")
+            if status[1] == 'active':
+                state = 1
+            else:
+                print("exit")
+                state = 0
+                sys.exit(1)
+            
+            x = re.search("Main PID: [0-9]+", output) 
+            pid= x.group().split(" ")
+            pid_id=pid[2]
             proc = subprocess.Popen(
             ["ps", "-eo", "pid,comm,lstart,etime,time"], stdout=subprocess.PIPE
             )   
@@ -65,7 +78,7 @@ class MetricsCollector(Collector):
                 p = pid_decription.split()[0]
                 if p == pid_id:
                     print(pid_decription)
-                    mounth = pid_decription.split()[3]
+                    month = pid_decription.split()[3]
                     day = pid_decription.split()[4]
                     time_str = pid_decription.split()[5]
                     years = pid_decription.split()[6]
@@ -80,7 +93,7 @@ class MetricsCollector(Collector):
                         minutes = int(state_uptime_dic[1])
                         seconds = int(state_uptime_dic[2])
                     state_uptime=seconds+minutes*60+hours*3600
-                    date_str = mounth + "-" + day + "-" + years + " " + time_str
+                    date_str = month + "-" + day + "-" + years + " " + time_str
                     besu_service_date[date_str] = run_uptime
             total_uptime=self.total_uptime_count(besu_service_date)
             f = open("ethereum_besu_total_uptime.txt", "w")
@@ -138,6 +151,6 @@ if __name__ == "__main__":
     REGISTRY.unregister(PROCESS_COLLECTOR)
     REGISTRY.register(MetricsCollector())
 
-    start_http_server({{ vars[role_name + '_metrics_port'] | int }})
+    start_http_server({{ vars[role_name + '_custom_metrics_port'] | int }})
     while True:
         time.sleep(30)
