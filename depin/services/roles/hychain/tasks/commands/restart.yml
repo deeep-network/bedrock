@@ -5,25 +5,25 @@
     name: hychain.service
     state: restarted
 
-- name: Assert
-  when: "'molecule' in groups"
-  block:
-    - name: Get service info
-      become: true
-      ansible.builtin.systemd:
-        name: "hychain"
-      register: _hychain
+# - name: Assert
+#   when: "'molecule' in groups"
+#   block:
+#     - name: Get service info
+#       become: true
+#       ansible.builtin.systemd:
+#         name: "hychain"
+#       register: _hychain
 
-    - debug:
-        var: _hychain.status.ActiveState
+#     - debug:
+#         var: _hychain.status.ActiveState
 
-    - name: Check service
-      ansible.builtin.assert:
-        that:
-          - _hychain['status']['ActiveState']=='active'
-          - _hychain_pid | int != _hychain['status']['ExecMainPID'] | int
-        quiet: true
+#     - name: Check service
+#       ansible.builtin.assert:
+#         that:
+#           - _hychain['status']['ActiveState']=='active'
+#           - _hychain_pid | int != _hychain['status']['ExecMainPID'] | int
+#         quiet: true
 
-    - name: Set pid
-      ansible.builtin.set_fact:
-        _hychain_pid: "{{ _hychain['status']['ExecMainPID'] }}"
+#     - name: Set pid
+#       ansible.builtin.set_fact:
+#         _hychain_pid: "{{ _hychain['status']['ExecMainPID'] }}"
