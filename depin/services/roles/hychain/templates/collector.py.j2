@@ -58,16 +58,16 @@ class MetricsCollector(Collector):
                 print("No file")
                 hychain_service_date={}
 
-            for pid_decription in services_pids:
-                pid_decription = pid_decription.decode("utf-8")
-                p = pid_decription.split()[0]
+            for pid_description in services_pids:
+                pid_description = pid_description.decode("utf-8")
+                p = pid_description.split()[0]
                 if p == pid_id:
-                    print(pid_decription)
-                    month = pid_decription.split()[3]
-                    day = pid_decription.split()[4]
-                    time_str = pid_decription.split()[5]
-                    years = pid_decription.split()[6]
-                    run_uptime = pid_decription.split()[7]
+                    print(pid_description)
+                    month = pid_description.split()[3]
+                    day = pid_description.split()[4]
+                    time_str = pid_description.split()[5]
+                    years = pid_description.split()[6]
+                    run_uptime = pid_description.split()[7]
                     state_uptime_dic=run_uptime.split(":")
                     if len(state_uptime_dic)<=2:
                         hours=0
