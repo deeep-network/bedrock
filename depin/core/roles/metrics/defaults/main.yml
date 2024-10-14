@@ -1,6 +1,6 @@
 ---
 metrics_cmd: "{{ depin_cmd | default('install') }}"
-metrics_parent_role_name: "{{ ansible_parent_role_names | last | split('.') | last }}"
+metrics_parent_role_name: "{{ ansible_parent_role_names | last | split('.') | last | basename }}"
 
 ## starting with 33001
 metrics_port:
