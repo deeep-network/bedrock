@@ -1,68 +1,61 @@
 ---
 ## install dependencies and service
-- name: Create program folder
-  become: true
-  ansible.builtin.file:
-    state: directory
-    owner: root
-    group: root
-    mode: '0755'
-    dest: /opt/autonomi/{{ autonomi_version }}
-
-- name: Download binary to tmp
-  become: true
-  ansible.builtin.get_url:
-    url: "{{ autonomi_safeup_download_url }}"
-    dest: /tmp/safeup_service_install.sh
-
-- name: Install SafeUp
-  become: true
-  command: bash /tmp/safeup_service_install.sh
+- name: Install programs
+  ansible.builtin.include_role:
+    name: depin.core.installer
 
 - name: Install Safenode Manager
-  become: true
-  command: safeup node-manager
+  ansible.builtin.command:
+    argv:
+      - /usr/local/bin/safeup
+      - node-manager
+      - --no-modify-shell-profile
+      # @todo - needs bugfix to work
+      # - --path=/opt/autonomi/{{ autonomi_version }}
+      - --version={{ autonomi_node_manager_version }}
+    creates: /opt/autonomi/{{ autonomi_version }}/safenode-manager
 
-- name: Copy safenode-manager binary
+# @note - required because safeup node-manager --path doesn't work
+- name: Copy safenode-manager
   become: true
   ansible.builtin.copy:
-    src: /root/.local/bin/safenode-manager
+    src: /home/ansible/.local/bin/safenode-manager
     dest: /opt/autonomi/{{ autonomi_version }}/safenode-manager
-    remote_src: yes
+    owner: root
+    group: root
+    mode: '0644'
+    remote_src: true
 
-- name: Copy safenode-manager binary
+- name: Symlink safenode-manager
   become: true
-  command: chmod +x /opt/autonomi/{{ autonomi_version }}/safenode-manager
+  ansible.builtin.file:
+    src: /opt/autonomi/{{ autonomi_version }}/safenode-manager
+    path: /usr/local/bin/safenode-manager
+    mode: '0755'
+    owner: root
+    group: root
+    state: hard
+    force: true
 
 - name: Create Services
-  become: true
-  command: /opt/autonomi/{{ autonomi_version }}/safenode-manager add --count {{ autonomi_count }} --peer /ip4/139.59.168.228/udp/56309/quic-v1/p2p/12D3KooWFTMtaqu24ddDSXk9v5YxnuhJmTLFRunER1CG4wZ2XLUU
+  ansible.builtin.command: 
+    argv:
+      - /usr/local/bin/safenode-manager
+      - add
+      - --count={{ autonomi_count }}
+      - --peer={{ autonomi_seed_peer }}
 
 - name: Create systemd file
   become: true
-  ansible.builtin.copy:
-    content: |
-      [Unit]
-      Description=autonomi service
-      After=network.target 
- 
-      [Service]
-      User=root
-      Group=root
-      Type=simple
-      ExecStart=/opt/autonomi/{{ autonomi_version }}/safenode-manager start
-      ExecStop=/opt/autonomi/{{ autonomi_version }}/safenode-manager stop
-      Restart=always
-      RestartSec=5
-      PIDFile=/tmp/autonomi.pid
- 
-      [Install]
-      WantedBy=multi-user.target 
+  ansible.builtin.template:
+    src: templates/systemd.service.j2
     dest: /etc/systemd/system/autonomi.service
+    mode: '0644'
 
-- name: Start
-  ansible.builtin.include_tasks: commands/start.yml
+- name: Start node
+  ansible.builtin.include_tasks:
+    file: commands/start.yml
 
-# relative to playbook (molecule - default)
-
-    # unique asserts go here
+- name: Install metrics
+  ansible.builtin.include_role:
+    name: depin.core.metrics

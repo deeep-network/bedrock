@@ -1,12 +1,14 @@
 [Unit]
-Description=
-After=network-online.target
-Wants=network.target
+Description=autonomi service
+After=network.target 
 
 [Service]
 Type=simple
-ExecStart=
+ExecStart=/usr/local/bin/safenode-manager start
+ExecStop=/usr/local/bin/safenode-manager stop
 Restart=always
+RestartSec=5
+PIDFile=/var/run/autonomi.pid
 
 [Install]
 WantedBy=multi-user.target

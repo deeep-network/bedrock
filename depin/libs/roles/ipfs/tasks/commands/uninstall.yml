@@ -5,15 +5,19 @@
     name: ipfs
     enabled: false
     state: stopped
+  failed_when: false
 
 - name: Uninstall
   become: true
   ansible.builtin.file:
-    path: "{{ item }}"
+    path: "{{ _remove }}"
     state: absent
     force: true
+    follow: true
   loop:
     - /usr/local/bin/ipfs
-    - /opt/ipfs
-    - $HOME/.ipfs
     - /etc/systemd/system/ipfs.service
+    - /opt/ipfs/
+    - "{{ ipfs_home_dir }}/.ipfs/"
+  loop_control:
+    loop_var: _remove

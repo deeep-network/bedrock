@@ -1,5 +1,13 @@
 ---
-autonomi_cmd: install
-autonomi_version: 0.10.3
-autonomi_count: 3
-autonomi_safeup_download_url: https://raw.githubusercontent.com/maidsafe/safeup/main/install.sh
+autonomi_cmd: "{{ depin_cmd | default('install') }}"
+autonomi_programs:
+  - safeup
+
+autonomi_version: 0.7.0
+autonomi_download_urls:
+  - "https://github.com/maidsafe/safeup/releases/download/v{{ autonomi_version }}/\
+    safeup-{{ autonomi_version }}-x86_64-unknown-linux-musl.tar.gz"
+
+autonomi_node_manager_version: 0.10.3
+autonomi_count: 1
+autonomi_seed_peer: /ip4/139.59.168.228/udp/56309/quic-v1/p2p/12D3KooWFTMtaqu24ddDSXk9v5YxnuhJmTLFRunER1CG4wZ2XLUU

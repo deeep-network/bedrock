@@ -2,14 +2,11 @@
 - name: Prepare
   hosts: molecule
   gather_facts: true
+  vars:
+    hostname: "{{ vm_hostname | default(lookup('pipe', 'hostname -s')) | split('.') | first }}"
+    vm_id: "{{ hostname | split('-') | last }}"
+    ipv4_address: "{{ ansible_default_ipv4.address | default(ansible_all_ipv4_addresses | first) }}"
   tasks:
-    - name: Copy over .env file
-      become: true
-      ansible.builtin.blockinfile:
-        block: "{{ lookup('ansible.builtin.file', '../.env') }}"
-        path: /etc/environment
-        backup: true
-
     ## cloud-init installs the latest signed collection via github
     # we need to make sure we install the local version for tests
     - name: Build collection packages
@@ -91,15 +88,11 @@
       register: ansible_galaxy_install
       changed_when: "'Nothing to do' not in ansible_galaxy_install.stdout"
 
-    - name: Install Netdata
-      ansible.builtin.include_role:
-        name: depin.core.netdata
+    # - name: Install Netdata
+    #   ansible.builtin.include_role:
+    #     name: depin.libs.netdata
 
     # only called directly due to testing
     - name: Update Netbox
-      vars:
-        hostname: "{{ vm_hostname | default(lookup('pipe', 'hostname -s')) | split('.') | first }}"
-        vm_id: "{{ hostname | split('-') | last }}"
-        ipv4_address: "{{ ansible_default_ipv4.address | default(ansible_all_ipv4_addresses | first) }}"
       ansible.builtin.include_role:
-        name: depin.core.netbox
+        name: depin.libs.netbox

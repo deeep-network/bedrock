@@ -1,0 +1,43 @@
+---
+- name: Ensure directory exists
+  become: true
+  ansible.builtin.file:
+    path: /etc/deeep-network/collectors
+    state: directory
+    mode: '0755'
+    recurse: true
+
+- name: Install script
+  become: true
+  ansible.builtin.template:
+    src: templates/collector.py.j2
+    dest: /etc/deeep-network/collectors/{{ metrics_parent_role_name }}.py
+    mode: '0744'
+
+- name: Install service
+  become: true
+  ansible.builtin.template:
+    src: templates/systemd.service.j2
+    dest: /etc/systemd/system/collector-{{ metrics_parent_role_name }}.service
+    mode: '0644'
+
+- name: Update prometheus.conf
+  vars:
+    _block: |
+          - name: {{ metrics_parent_role_name }}
+            url: 'http://127.0.0.1:{{ metrics_port[metrics_parent_role_name] }}/metrics'
+  become: true
+  ansible.builtin.blockinfile:
+    path: /etc/netdata/go.d/prometheus.conf
+    append_newline: true
+    block: "{{ _block | indent(4, first=true) }}"
+    create: true
+    mode: '0644'
+
+- name: Start service
+  become: true
+  ansible.builtin.systemd_service:
+    name: collector-{{ metrics_parent_role_name }}
+    enabled: true
+    daemon_reload: true
+    state: started

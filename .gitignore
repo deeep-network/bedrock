@@ -4,9 +4,10 @@
 
 # molecule
 build
-**/shared/cloud-init.yml
+**cloud-init.yml
 
 .env*
+!.envrc
 !dev.env*
 
 .DS_Store

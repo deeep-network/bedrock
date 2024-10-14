@@ -1,4 +1,0 @@
----
-- name: Ipfs cluster follow {{ ipfs_cluster_follow_cmd }}
-  ansible.builtin.include_tasks:
-    file: commands/{{ ipfs_cluster_follow_cmd }}.yml

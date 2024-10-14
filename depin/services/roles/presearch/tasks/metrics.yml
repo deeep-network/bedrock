@@ -23,6 +23,7 @@
       ansible.builtin.template:
         src: templates/metrics.service.j2
         dest: /etc/systemd/system/collector-{{ _name }}.service
+        mode: '0644'
 
     - name: Update prometheus.conf
       vars:
@@ -49,7 +50,7 @@
   block:
     - name: Stop service
       ansible.builtin.systemd_service:
-        name: "{{ _name }}"
+        name: collector-{{ _name }}
         enabled: false
         state: stopped
 

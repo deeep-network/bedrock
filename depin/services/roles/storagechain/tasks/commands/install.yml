@@ -13,18 +13,23 @@
   loop_control:
     loop_var: _pid
 
-- name: Download files
-  become: true
-  ansible.builtin.unarchive:
-    remote_src: true
-    src: "{{ storagechain_download_url }}"
-    dest: /tmp
+- name: Install programs
+  ansible.builtin.include_role:
+    name: depin.core.installer
 
-- name: Install IPFS
+- name: Create videos folder
+  become: true
+  ansible.builtin.file:
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+    dest: "{{ storagechain_dir | dirname }}/videos"
+
+- name: Setup IPFS
   vars:
+    ipfs_dir: "{{ storagechain_dir }}"
     ipfs_private_network: true
-    ipfs_version: "{{ storagechain_version }}"
-    ipfs_checksum: "{{ storagechain_ipfs_checksum }}"
     ipfs_addresses_api: /ip4/0.0.0.0/tcp/5001
     ipfs_addresses_gateway: /ip4/0.0.0.0/tcp/8080
     ipfs_datastore_storage_max: "{{ storagechain_node_size }}"
@@ -33,78 +38,43 @@
       Access-Control-Allow-Methods: ["PUT", "POST"]
   ansible.builtin.include_role:
     name: depin.libs.ipfs
+    tasks_from: commands/setup.yml
 
-- name: Install IPFS Cluster Follow
+- name: Setup IPFS Cluster
   vars:
-    ipfs_cluster_follow_version: "{{ storagechain_version }}"
-    ipfs_cluster_follow_checksum: "{{ storagechain_ipfs_cluster_follow_checksum }}"
-    ipfs_cluster_follow_config_url: http://89.117.72.26:8080/ipns/k51qzi5uqu5dlh2h4gml3k5vik5mas2zos0pyf1shnfzj9d4nsg31lw4x7ujsk
-    ipfs_cluster_follow_cluster_name: cluster_follower
-    ipfs_cluster_follow_command_args: "{{ storagechain_ipfs_cluster_args }}"
-    ipfs_cluster_follow_cluster_peername: "{{ storagechain_node_name }}"
-    ipfs_cluster_follow_cluster_monitor_ping_interval: 5s
-    ipfs_cluster_follow_ipfs_connector_ipfshttp_node_multiaddress: /ip4/0.0.0.0/tcp/5001
-    ipfs_cluster_follow_api_restapi_http_listen_multiaddress: /ip4/0.0.0.0/tcp/9094
-    ipfs_cluster_follow_env_vars:
+    ipfs_cluster_type: "{{ storagechain_ipfs_cluster_type }}"
+    ipfs_cluster_dir: "{{ storagechain_dir }}"
+    ipfs_cluster_config_url: "{{ storagechain_ipfs_cluster_remote_config }}"
+    ipfs_cluster_command_args: "{{ storagechain_ipfs_cluster_args }}"
+    ipfs_cluster_peername: "{{ storagechain_node_name }}"
+    ipfs_cluster_monitor_ping_interval: 5s
+    ipfs_cluster_ipfs_connector_ipfshttp_node_multiaddress: /ip4/0.0.0.0/tcp/5001
+    ipfs_cluster_api_restapi_http_listen_multiaddress: /ip4/0.0.0.0/tcp/9094
+    ipfs_cluster_env_vars:
       CLUSTER_MONITORINGINTERVAL: 5s
       CLUSTER_HOST_NAME: cluster-internal.io
       CLUSTER_RESTAPI_HTTPLISTENMULTIADDRESS: /ip4/0.0.0.0/tcp/9094
+      CLUSTER_SECRET: "{{ storagechain_cluster_secret }}"
   ansible.builtin.include_role:
-    name: depin.libs.ipfs_cluster_follow
+    name: depin.libs.ipfs_cluster
+    tasks_from: commands/setup.yml
 
-- name: Install File Server
+- name: Install systemd service
   become: true
-  block:
-    - name: Create program folder
-      ansible.builtin.file:
-        state: directory
-        owner: root
-        group: root
-        mode: '0755'
-        recurse: true
-        dest: /opt/{{ role_name }}/{{ storagechain_version }}
-
-    - name: Find binary
-      ansible.builtin.find:
-        paths: /tmp
-        patterns: 'file-server-lin$'
-        use_regex: true
-        get_checksum: true
-        recurse: true
-      register: _download
-
-    - name: Extract binary
-      ansible.builtin.copy:
-        remote_src: true
-        src: "{{ (_download['files'] | first)['path'] }}"
-        dest: /opt/{{ role_name }}/{{ storagechain_version }}
-        mode: preserve
-
-    - name: Symlink binary to path
-      ansible.builtin.file:
-        src: /opt/{{ role_name }}/{{ storagechain_version }}/file-server-lin
-        path: /usr/local/bin/storagechain
-        mode: '0755'
-        owner: root
-        group: root
-        state: hard
-        force: true
-
-    - name: Install systemd service
-      ansible.builtin.template:
-        src: templates/systemd.service.j2
-        dest: /etc/systemd/system/storagechain.service
-        owner: root
-        group: root
-        mode: '0644'
+  ansible.builtin.template:
+    src: templates/systemd.service.j2
+    dest: /etc/systemd/system/file-server-lin.service
+    owner: root
+    group: root
+    mode: '0644'
 
 - name: Set firwall rules
   become: true
   community.general.ufw:
     rule: allow
     port: "{{ _port }}"
-    proto: "{{ service_data['protocol']['value'] | default('tcp') }}"
-  loop: "{{ service_data['ports'] }}"
+    proto: "{{ storagechain_firewall['protocol']['value'] | default('tcp') }}"
+  loop: "{{ storagechain_firewall['ports'] }}"
   loop_control:
     loop_var: _port
 
@@ -116,7 +86,7 @@
   vars:
     inadyn_hostname: "{{ storagechain_dns }}"
   ansible.builtin.include_role:
-    name: depin.core.inadyn
+    name: depin.libs.inadyn
 
 # @todo - temporary solution to get storagechain the IP address of node
 - name: Forward IP Address to Storagechain
@@ -143,10 +113,8 @@
   until: send_ipv4_address is not failed
 
 - name: Install metrics
-  vars:
-    depin_cmd: install
-  ansible.builtin.include_tasks:
-    file: tasks/metrics.yml
+  ansible.builtin.include_role:
+    name: depin.core.metrics
 
 - name: Assert
   when: "'molecule' in groups"
@@ -154,23 +122,4 @@
     # relative to playbook (molecule - default)
     - name: Common install asserts
       ansible.builtin.include_tasks:
-        file: tasks/asserts_install.yml
-
-    - name: Get unique stats
-      become: true
-      ansible.builtin.stat:
-        path: /home/ipfs/.{{ item }}
-        follow: true
-      loop:
-        - ipfs
-        - ipfs-cluster-follow
-      register: _unique_stats
-
-    - name: Check unique stats
-      ansible.builtin.assert:
-        that:
-          - item['stat']['exists']
-        quiet: true
-      loop: "{{ _unique_stats['results'] }}"
-      loop_control:
-        label: "{{ item['stat']['path'] }}"
+        file: tests/install.yml
