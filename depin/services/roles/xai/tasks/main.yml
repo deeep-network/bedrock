@@ -1,0 +1,5 @@
+---
+- name: "XAI {{ xai_cmd }}"
+  ansible.builtin.include_tasks:
+    file: "commands/{{ xai_cmd }}.yml"
+
