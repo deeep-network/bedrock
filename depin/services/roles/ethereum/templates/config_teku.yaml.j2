@@ -1,0 +1,10 @@
+network: {{ ethereum_network }}
+ee-endpoint: "{{ ethereum_teku_ee_endpoint }}"
+ee-jwt-secret-file: "/opt/ethereum_teku/{{ ethereum_teku_version }}/jwtsecret.hex"
+metrics-enabled: true
+rest-api-enabled: true
+checkpoint-sync-url: "{{ ethereum_teku_checkpoint_sync_url }}"
+p2p-advertised-ip: "{{ ethereum_public_ip }}"
+metrics-enabled: true
+metrics-host-allowlist: ["*"]
+metrics-port: 6174

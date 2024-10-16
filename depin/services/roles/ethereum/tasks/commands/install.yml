@@ -1,0 +1,162 @@
+---
+- name: Install dependencies
+  become: true
+  ansible.builtin.apt:
+    name:
+      - openjdk-21-jdk
+    state: present
+    update_cache: true
+
+- name: Create program folder for besu
+  become: true
+  ansible.builtin.file:
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+    dest: /opt/ethereum_besu/{{ ethereum_besu_version }}
+
+- name: Create program folder for teku
+  become: true
+  ansible.builtin.file:
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+    dest: /opt/ethereum_teku/{{ ethereum_teku_version }}
+
+- name: Download besu binary  to tmp
+  become: true
+  ansible.builtin.unarchive:
+    remote_src: true
+    src: "{{ ethereum_besu_download_url }}"
+    dest: /tmp
+  failed_when: false
+
+- name: Download teku binary to tmp
+  become: true
+  ansible.builtin.unarchive:
+    remote_src: true
+    src: "{{ ethereum_teku_download_url }}"
+    dest: /tmp
+  failed_when: false
+
+- name: Find besu binary
+  become: true
+  ansible.builtin.find:
+    paths:
+      - /tmp
+      - "{{ ethereum_besu_download_path | default('/tmp') }}"
+    patterns: 'besu$'
+    use_regex: true
+    get_checksum: true
+    recurse: true
+  register: _download_besu
+
+- name: Find teku binary
+  become: true
+  ansible.builtin.find:
+    paths:
+      - /tmp
+      - "{{ ethereum_teku_download_path | default('/tmp') }}"
+    patterns: 'teku$'
+    use_regex: true
+    get_checksum: true
+    recurse: true
+  register: _download_teku
+
+- name: Generate the shared secret
+  become: true
+  ansible.builtin.shell:  openssl rand -hex 32 | tr -d "\n" > /tmp/jwtsecret.hex
+
+- name: Copy the shared secret to execution client
+  become: true
+  ansible.builtin.copy:
+    remote_src: true
+    src: /tmp/jwtsecret.hex
+    dest: /opt/ethereum_besu/{{ ethereum_besu_version }}/jwtsecret.hex
+
+- name: Copy the shared secret to consensus client
+  become: true
+  ansible.builtin.copy:
+    remote_src: true
+    src: /tmp/jwtsecret.hex
+    dest: /opt/ethereum_teku/{{ ethereum_teku_version }}/jwtsecret.hex
+
+- name: Get public IP 
+  uri:
+    url: https://ipecho.net/plain
+    method: GET
+    return_content: yes
+    status_code: 200
+  register: public_ip
+  ignore_errors: True
+
+- name: Set the public ip
+  set_fact:
+    ethereum_public_ip: "{{ public_ip.content }}"
+  when: public_ip.status == 200
+
+- name: Install execution client
+  when: _download_besu['files'] | length > 0
+  become: true
+  vars:
+    _files: |
+      {{ 
+        _download_besu['files'] |
+        selectattr('checksum', 'equalto', ethereum_besu_checksum | default(''))
+      }}
+  block:
+    - name: Copy required files
+      ansible.builtin.copy:
+        remote_src: true
+        src: /tmp/besu-{{ ethereum_besu_version }}/
+        dest: /opt/ethereum_besu/{{ ethereum_besu_version }}
+        mode: '0755'       
+
+    - name: Copy besu config file
+      become: true
+      ansible.builtin.template:
+        src: templates/config_besu.toml.j2
+        dest: /opt/ethereum_besu/{{ ethereum_besu_version }}/config_besu.toml
+        mode: '0777'  
+
+    - name: Create besu systemd file
+      ansible.builtin.template:
+        src: templates/systemd.besu_service.j2
+        dest: /etc/systemd/system/ethereum_besu.service
+        mode: '0644'
+
+- name: Install consensus client
+  when: _download_teku['files'] | length > 0
+  become: true
+  vars:
+    _files: |
+      {{ 
+        _download_teku['files'] |
+        selectattr('checksum', 'equalto', ethereum_teku_checksum | default(''))
+      }}
+  block:
+    - name: Copy required files
+      ansible.builtin.copy:
+        remote_src: true
+        src: /tmp/teku-{{ ethereum_teku_version }}/
+        dest: /opt/ethereum_teku/{{ ethereum_teku_version }}
+        mode: '0755'       
+
+    - name: Copy teku config file
+      become: true
+      ansible.builtin.template:
+        src: templates/config_teku.yaml.j2
+        dest: /opt/ethereum_teku/{{ ethereum_teku_version }}/config_teku.yaml
+        mode: '0777'  
+
+    - name: Create teku systemd file
+      ansible.builtin.template:
+        src: templates/systemd.teku_service.j2
+        dest: /etc/systemd/system/ethereum_teku.service
+        mode: '0644'
+
+- name: Start node
+  ansible.builtin.include_tasks:
+    file: commands/start.yml

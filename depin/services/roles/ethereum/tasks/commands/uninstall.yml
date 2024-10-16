@@ -1,0 +1,49 @@
+---
+# Stop the service before uninstalling
+- name: Stop
+  ansible.builtin.include_tasks: commands/stop.yml
+
+# Remove the binary file for ethereum_besu 
+- name: Remove systemd service for ethereum_besu 
+  become: true
+  file:
+    path: /opt/ethereum_besu
+    state: absent
+
+- name: Remove systemd service for ethereum_besu 
+  become: true
+  file:
+    path: /opt/ethereum_teku
+    state: absent
+
+# Remove the systemd service for ethereum_besu 
+- name: Delete content & directory
+  become: true
+  ansible.builtin.file:
+    state: absent
+    path: "{{ item }}"
+  loop:
+    - /etc/systemd/system/ethereum_besu.service
+    - /opt/ethereum/{{ ethereum_besu_version }}
+  loop_control:
+    loop_var: item
+
+- name: Verify that the ethereum service file is removed
+  ansible.builtin.stat:
+    path: /etc/systemd/system/ethereum.service
+  register: ethereum_service_file
+
+- name: Assert that the ethereumGo service file does not exist
+  ansible.builtin.assert:
+    that:
+      - not ethereum_service_file.stat.exists
+
+- name: Verify that the  program directory is removed
+  ansible.builtin.stat:
+    path: /opt/ethereum/{{ ethereum_besu_version }}
+  register: ethereum_directory
+
+- name: Assert that the  program directory does not exist
+  ansible.builtin.assert:
+    that:
+      - not ethereum_directory.stat.exists
