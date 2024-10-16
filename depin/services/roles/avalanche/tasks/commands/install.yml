@@ -1,0 +1,96 @@
+# tasks/commands/install.yml
+
+---
+
+- name: Create program folder
+  become: true
+  ansible.builtin.file:
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+    dest: /opt/avalanche/{{ avalanche_version }}
+
+- name: Verify that the program folder was created
+  ansible.builtin.stat:
+    path: /opt/avalanche/{{ avalanche_version }}
+  register: avalanche_program_folder
+
+- name: Assert that the program folder exists
+  ansible.builtin.assert:
+    that:
+      - avalanche_program_folder.stat.exists
+      - avalanche_program_folder.stat.isdir
+
+- name: Download AvalancheGo
+  become: true
+  ansible.builtin.get_url:
+    url: "{{ avalanche_download_url }}"
+    dest: /tmp/avalanchego.tar.gz
+    mode: '0644'
+
+- name: Extract AvalancheGo
+  become: true
+  ansible.builtin.unarchive:
+    src: /tmp/avalanchego.tar.gz
+    dest: /opt/avalanche/{{ avalanche_version }}
+    remote_src: yes
+    extra_opts:
+      - --strip-components=1
+
+- name: Ensure avalanchego binary is executable
+  become: true
+  ansible.builtin.file:
+    path: /opt/avalanche/{{ avalanche_version }}/avalanchego
+    mode: '0755'
+
+- name: Verify that the AvalancheGo binary exists
+  ansible.builtin.stat:
+    path: /opt/avalanche/{{ avalanche_version }}/avalanchego
+  register: avalanchego_binary
+
+- name: Assert that the AvalancheGo binary exists
+  ansible.builtin.assert:
+    that:
+      - avalanchego_binary.stat.exists
+      - avalanchego_binary.stat.mode | int == 755
+
+- name: Symlink avalanchego binary
+  become: true
+  ansible.builtin.file:
+    src: /opt/avalanche/{{ avalanche_version }}/avalanchego
+    dest: /usr/local/bin/avalanchego
+    state: link
+    force: true
+
+- name: Create systemd service
+  become: true
+  ansible.builtin.template:
+    src: templates/systemd.service.j2
+    dest: /etc/systemd/system/avalanchego.service
+    mode: '0644'
+
+- name: Verify that the AvalancheGo service file exists
+  ansible.builtin.stat:
+    path: /etc/systemd/system/avalanchego.service
+  register: avalanchego_service_file
+
+- name: Assert that the AvalancheGo service file exists
+  ansible.builtin.assert:
+    that:
+      - avalanchego_service_file.stat.exists
+
+- name: Reload systemd daemon
+  become: true
+  ansible.builtin.systemd:
+    daemon_reload: yes
+
+- name: Start Avalanche node
+  ansible.builtin.include_tasks:
+    file: commands/start.yml
+
+- name: Install metrics
+  vars:
+    depin_cmd: install
+  ansible.builtin.include_tasks:
+    file: tasks/metrics.yml

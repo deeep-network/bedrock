@@ -1,0 +1,19 @@
+---
+
+- name: Uninstall node
+  ansible.builtin.include_tasks:
+    file: commands/uninstall.yml
+
+- name: Install node
+  ansible.builtin.include_tasks:
+    file: commands/install.yml
+
+- name: Get AvalancheGo version
+  ansible.builtin.command: /usr/local/bin/avalanchego --version
+  register: avalanchego_version_output
+  changed_when: false
+
+- name: Assert that AvalancheGo is updated to version {{ avalanche_version }}
+  ansible.builtin.assert:
+    that:
+      - "'avalanchego version {{ avalanche_version }}' in avalanchego_version_output.stdout"

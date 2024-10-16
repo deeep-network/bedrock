@@ -1,0 +1,7 @@
+# defaults/main.yml
+
+avalanche_metrics_port: 33006
+avalanche_cmd: "{{ depin_cmd | default('install') }}"
+
+avalanche_version: "1.10.0"
+avalanche_download_url: "https://github.com/ava-labs/avalanchego/releases/download/v{{ avalanche_version }}/avalanchego-linux-amd64-v{{ avalanche_version }}.tar.gz"
