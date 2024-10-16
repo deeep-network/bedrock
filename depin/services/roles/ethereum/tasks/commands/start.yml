@@ -7,6 +7,8 @@
     enabled: true
     daemon_reload: true
     state: started
+  pause:
+    seconds: 60
 
 - name: Start consensus client
   become: true
@@ -28,7 +30,7 @@
     - debug:
         var: _ethereum_besu.status.ActiveState
 
-    - name: Check service
+    - name: Ensure besu is active state
       ansible.builtin.assert:
         that:
           - _ethereum_besu['status']['ActiveState']=='active'
@@ -47,7 +49,7 @@
     - debug:
         var: _ethereum_teku.status.ActiveState
 
-    - name: Check service
+    - name: Ensure teku is active state
       ansible.builtin.assert:
         that:
           - _ethereum_teku['status']['ActiveState']=='active'
