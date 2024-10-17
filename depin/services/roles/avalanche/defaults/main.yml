@@ -1,0 +1,39 @@
+# defaults/main.yml
+
+# Metrics port for AvalancheGo
+avalanche_metrics_port: 33006
+
+# Command to execute (install, uninstall, etc.)
+avalanche_cmd: "{{ depin_cmd | default('install') }}"
+
+# AvalancheGo version to install
+avalanche_version: "1.11.11"
+
+# Determine the architecture (amd64 or arm64)
+avalanche_arch: "{{ 'arm64' if ansible_facts['architecture'] == 'aarch64' else 'amd64' }}"
+
+# Download URL for AvalancheGo binary
+avalanche_download_url: "https://github.com/ava-labs/avalanchego/releases/download/v{{ avalanche_version }}/avalanchego-linux-{{ avalanche_arch }}-v{{ avalanche_version }}.tar.gz"
+
+# Installation directory for AvalancheGo
+avalanche_install_dir: '/opt/avalanche/{{ avalanche_version }}'
+
+# Configuration directory for AvalancheGo
+avalanche_config_dir: '/home/{{ ansible_user_id }}/.avalanchego'  # Or another appropriate path
+
+# User and group to run AvalancheGo service
+avalanche_user: '{{ ansible_user_id }}'
+avalanche_group: '{{ ansible_user_id }}'
+
+# Network ID ('mainnet' or 'fuji' for testnet)
+avalanche_network_id: 'mainnet'
+
+# Additional necessary variables
+avalanche_ip_mode: 'dynamic'  # 'dynamic' or 'static'
+avalanche_public_ip: ''  # Automatically determined if empty and ip_mode == 'static'
+avalanche_rpc_public: false  # true or false
+avalanche_admin_api_enabled: false  # true or false
+avalanche_index_enabled: false  # true or false
+avalanche_state_sync_enabled: true  # true or false
+avalanche_archival_mode: false  # true or false
+avalanche_db_dir: ''  # Path to database directory if needed

@@ -1,0 +1,9 @@
+---
+
+- name: Uninstall node
+  ansible.builtin.include_tasks:
+    file: commands/uninstall.yml
+
+- name: Install node
+  ansible.builtin.include_tasks:
+    file: commands/install.yml

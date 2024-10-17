@@ -1,0 +1,10 @@
+# tasks/commands/start.yml
+
+---
+- name: Start Avalanche node
+  become: true
+  ansible.builtin.service:
+    name: avalanchego.service
+    enabled: true
+    daemon_reload: true
+    state: started

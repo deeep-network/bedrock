@@ -1,0 +1,28 @@
+---
+## stop service
+
+- name: Stop node
+  become: true
+  ansible.builtin.service:
+    name: avalanchego.service
+    enabled: false
+    state: stopped
+
+- name: Assert
+  when: "'molecule' in groups"
+  block:
+    - name: Get service info
+      become: true
+      ansible.builtin.systemd:
+        name: "avalanchego"
+      register: _avalanchego
+
+    - name: Debug service status
+      debug:
+        var: _avalanchego.status
+
+    - name: Check service
+      ansible.builtin.assert:
+        that:
+          - _avalanchego['status']['ActiveState'] == 'inactive'
+        quiet: true

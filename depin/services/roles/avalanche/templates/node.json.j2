@@ -1,0 +1,22 @@
+{
+{% if avalanche_rpc_public %}
+  "http-host": "",
+{% endif %}
+{% if avalanche_admin_api_enabled %}
+  "api-admin-enabled": true,
+{% endif %}
+{% if avalanche_index_enabled %}
+  "index-enabled": true,
+{% endif %}
+{% if avalanche_network_id != 'mainnet' %}
+  "network-id": "{{ avalanche_network_id }}",
+{% endif %}
+{% if avalanche_db_dir %}
+  "db-dir": "{{ avalanche_db_dir }}",
+{% endif %}
+{% if avalanche_ip_mode == 'dynamic' %}
+  "public-ip-resolution-service": "opendns"
+{% else %}
+  "public-ip": "{{ avalanche_public_ip }}"
+{% endif %}
+}

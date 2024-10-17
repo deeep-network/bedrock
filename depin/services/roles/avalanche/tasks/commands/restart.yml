@@ -1,0 +1,44 @@
+---
+
+- name: Get current service info
+  become: true
+  ansible.builtin.systemd:
+    name: "avalanchego"
+  register: _avalanchego_before
+
+- name: Set current PID
+  ansible.builtin.set_fact:
+    _avalanche_pid: "{{ _avalanchego_before['status']['ExecMainPID'] }}"
+
+- name: Restart node
+  become: true
+  ansible.builtin.service:
+    name: avalanchego.service
+    state: restarted
+
+- name: Assert
+  when: "'molecule' in groups"
+  block:
+    - name: Get new service info
+      become: true
+      ansible.builtin.systemd:
+        name: "avalanchego"
+      register: _avalanchego_after
+
+    - name: Debug new service status
+      debug:
+        msg:
+          - "Old PID: {{ _avalanche_pid }}"
+          - "New PID: {{ _avalanchego_after['status']['ExecMainPID'] }}"
+          - "Active State: {{ _avalanchego_after['status']['ActiveState'] }}"
+
+    - name: Check service
+      ansible.builtin.assert:
+        that:
+          - _avalanchego_after['status']['ActiveState'] == 'active'
+          - _avalanche_pid | int != _avalanchego_after['status']['ExecMainPID'] | int
+        quiet: true
+
+    - name: Update PID
+      ansible.builtin.set_fact:
+        _avalanche_pid: "{{ _avalanchego_after['status']['ExecMainPID'] }}"

@@ -1,0 +1,6 @@
+{
+  "state-sync-enabled": {{ avalanche_state_sync_enabled | lower }}{% if avalanche_archival_mode %},{% endif %}
+  {% if avalanche_archival_mode %}
+  "pruning-enabled": false
+  {% endif %}
+}

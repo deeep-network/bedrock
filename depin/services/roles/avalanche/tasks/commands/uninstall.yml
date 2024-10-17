@@ -1,0 +1,53 @@
+---
+
+- name: Disable systemd service
+  ansible.builtin.include_tasks:
+    file: commands/stop.yml
+
+- name: Uninstall metrics
+  vars:
+    depin_cmd: uninstall
+  ansible.builtin.include_tasks:
+    file: tasks/metrics.yml
+
+- name: Delete content & directory
+  become: true
+  ansible.builtin.file:
+    state: absent
+    path: "{{ item }}"
+  loop:
+    - /etc/systemd/system/avalanchego.service
+    - /usr/local/bin/avalanchego
+    - /opt/avalanche/{{ avalanche_version }}
+  loop_control:
+    loop_var: item
+
+- name: Verify that the AvalancheGo service file is removed
+  ansible.builtin.stat:
+    path: /etc/systemd/system/avalanchego.service
+  register: avalanchego_service_file
+
+- name: Assert that the AvalancheGo service file does not exist
+  ansible.builtin.assert:
+    that:
+      - not avalanchego_service_file.stat.exists
+
+- name: Verify that the AvalancheGo binary is removed
+  ansible.builtin.stat:
+    path: /usr/local/bin/avalanchego
+  register: avalanchego_binary
+
+- name: Assert that the AvalancheGo binary does not exist
+  ansible.builtin.assert:
+    that:
+      - not avalanchego_binary.stat.exists
+
+- name: Verify that the AvalancheGo program directory is removed
+  ansible.builtin.stat:
+    path: /opt/avalanche/{{ avalanche_version }}
+  register: avalanchego_directory
+
+- name: Assert that the AvalancheGo program directory does not exist
+  ansible.builtin.assert:
+    that:
+      - not avalanchego_directory.stat.exists
