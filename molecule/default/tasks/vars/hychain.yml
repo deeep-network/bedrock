@@ -1,0 +1,5 @@
+test_role: depin.services.hychain
+
+# override role variables
+# https://explorer.hytopia.com/address/0x488b60121887a638026B5a8dEa70B7200E4D8Eb0
+hychain_private_key: "0x64c077bf4de3b020f874e8a9384cbdd98dafeb49cc9e78f0996771f86c0c48e2"
