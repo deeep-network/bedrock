@@ -1,0 +1,18 @@
+{{ ansible_managed | comment }}
+
+[Unit]
+Description=Prometheus collector - {{ _name }}
+After=network-online.target
+
+[Service]
+Type=simple
+User=nerdnode
+ExecStart=sudo /opt/pipx/venvs/ansible-core/bin/python3 /etc/deeep-network/collectors/{{ _name }}.py
+KillSignal=SIGINT
+Restart=on-failure
+
+StandardOutput=syslog
+StandardError=syslog
+
+[Install]
+WantedBy=multi-user.target

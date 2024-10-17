@@ -1,0 +1,48 @@
+---
+# Stop ethereum_besu 
+- name: Stop ethereum_besu 
+  become: true
+  ansible.builtin.systemd:
+    name: ethereum_besu
+    state: stopped
+
+- name: Stop ethereum_besu 
+  become: true
+  ansible.builtin.systemd:
+    name: ethereum_teku
+    state: stopped
+
+- name: Assert
+  when: "'molecule' in groups"
+  block:
+    - name: Get service info
+      become: true
+      ansible.builtin.systemd:
+        name: "ethereum_besu"
+      register: _ethereum_besu
+
+    - name: Debug service status
+      debug:
+        var: _ethereum_besu.status
+
+    - name: Check service
+      ansible.builtin.assert:
+        that:
+          - _ethereum_besu['status']['ActiveState']=='inactive'
+        quiet: true
+      
+    - name: Get teku service info
+      become: true
+      ansible.builtin.systemd:
+        name: "ethereum_teku"
+      register: ethereum_teku
+
+    - name: Debug teku service status
+      debug:
+        var: ethereum_teku.status
+
+    - name: Check teku service
+      ansible.builtin.assert:
+        that:
+          - ethereum_teku['status']['ActiveState']=='inactive'
+        quiet: true

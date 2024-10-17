@@ -1,0 +1,17 @@
+[Unit]
+Description=ethereum_besu service
+After=network.target 
+
+[Service]
+User=root
+Group=root
+Type=simple
+WorkingDirectory=/opt/ethereum_besu/{{ ethereum_besu_version }}
+ExecStart=/opt/ethereum_besu/{{ ethereum_besu_version }}/bin/besu --config-file=/opt/ethereum_besu/{{ ethereum_besu_version }}/config_besu.toml 
+SuccessExitStatus=143
+Restart=on-failure
+RestartSec=20s
+PIDFile=/var/run/ethereum_besu.pid
+
+[Install]
+WantedBy=multi-user.target

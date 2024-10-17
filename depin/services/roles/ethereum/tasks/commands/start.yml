@@ -1,0 +1,58 @@
+---
+  # Run the ethereum_besu 
+- name: Start execution client
+  become: true
+  ansible.builtin.service:
+    name: ethereum_besu
+    enabled: true
+    daemon_reload: true
+    state: started
+
+- name: Start consensus client
+  become: true
+  ansible.builtin.service:
+    name: ethereum_teku
+    enabled: true
+    daemon_reload: true
+    state: started
+
+- name: Assert
+  when: "'molecule' in groups"
+  block:
+    - name: Get service info
+      become: true
+      ansible.builtin.systemd:
+        name: "ethereum_besu"
+      register: _ethereum_besu
+
+    - debug:
+        var: _ethereum_besu.status.ActiveState
+
+    - name: Check service
+      ansible.builtin.assert:
+        that:
+          - _ethereum_besu['status']['ActiveState']=='active'
+        quiet: true
+
+    - name: Set pid
+      ansible.builtin.set_fact:
+        _presearch_pid: "{{ _ethereum_besu['status']['ExecMainPID'] }}"
+
+    - name: Get service info
+      become: true
+      ansible.builtin.systemd:
+        name: "ethereum_teku"
+      register: _ethereum_teku
+
+    - debug:
+        var: _ethereum_teku.status.ActiveState
+
+    - name: Check service
+      ansible.builtin.assert:
+        that:
+          - _ethereum_teku['status']['ActiveState']=='active'
+        quiet: true
+
+    - name: Set pid
+      ansible.builtin.set_fact:
+        _presearch_pid: "{{ _ethereum_teku['status']['ExecMainPID'] }}"
