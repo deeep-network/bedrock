@@ -5,7 +5,6 @@ manage_etc_hosts: localhost
 prefer_fqdn_over_hostname: true
 
 packages:
-  - pipx
   - git
   - acl
   - nano
@@ -13,15 +12,24 @@ packages:
   - jq
   - ufw
   - unzip
+  - apt-transport-https
+  - ca-certificates
+  - gpg
 package_upgrade: true
 package_update: true
 
 ssh_pwauth: false
 
+groups:
+  - users
+
 users:
   - name: nerdnode
     gecos: NerdNode Admin Account
-    groups: users,admin,wheel
+    groups:
+      - admin
+      - wheel
+      - users
     sudo: ALL=(ALL) NOPASSWD:ALL
     shell: /bin/bash
     lock_passwd: true
@@ -29,22 +37,24 @@ users:
       - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOEu3Yh+xr+oNfcj72bcqcZNhg3D1SzeHh+BQKX4/05V anthony@nerdnode.io
 
 write_files:
-    - path: /etc/profile.d/pipx.sh
-      append: true
-      content: |
-        PATH=$HOME/.local/bin:$PATH
-        export PIPX_HOME=/opt/pipx
-        export PIPX_BIN_DIR=/usr/local/bin
     - path: /etc/environment
       append: true
       content: |
         {{ pulumi_esc.stdout | default('') | indent( width=8 ) }}
+    - path: /etc/systemd/system/hab-supervisor.service
+      content: |
+        {{ lookup('template', './hab-supervisor.service.j2') | trim | indent( width=8 )}}
+    - path: /etc/systemd/system/auto-deploy.service
+      content: |
+        {{ lookup('template', './auto-deploy.service.j2') | trim | indent( width=8 ) }}
+    - path: /etc/systemd/system/auto-deploy.timer
+      content: |
+        {{ lookup('template', './auto-deploy.timer.j2') | trim | indent( width=8 ) }}
 
 runcmd:
-  - [ env, PIPX_HOME=/opt/pipx, PIPX_BIN_DIR=/usr/local/bin, pipx, install, ansible-core ]
-  - [ env, PIPX_HOME=/opt/pipx, PIPX_BIN_DIR=/usr/local/bin, pipx, inject, ansible-core, psutil, netaddr, pytz, pynetbox, prometheus-client ]
-  - [ env, PIPX_HOME=/opt/pipx, PIPX_BIN_DIR=/usr/local/bin, pipx, install, ansible-sign ]
-  - [ env, PIPX_HOME=/opt/pipx, PIPX_BIN_DIR=/usr/local/bin, pipx, ensurepath ]
-  {% if not molecule_inventory is defined -%}
-  - su - nerdnode -c "curl -s https://raw.githubusercontent.com/deeep-network/ansible_collections/main/raw/playbooks/collections_install.yml | ansible-playbook /dev/stdin"
-  {% endif -%}
+  - curl https://raw.githubusercontent.com/habitat-sh/habitat/main/components/hab/install.sh | bash
+  - hab license accept
+  - hab origin key download deeep-network
+  - systemctl daemon-reload
+  - systemctl enable hab-supervisor.service auto-deploy.timer
+  - systemctl start hab-supervisor.service auto-deploy.timer

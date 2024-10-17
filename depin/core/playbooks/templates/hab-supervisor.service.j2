@@ -1,0 +1,12 @@
+[Unit]
+Description=The Chef Habitat Supervisor
+
+[Service]
+EnvironmentFile=/etc/environment
+ExecStart=/usr/bin/hab sup run deeep-network/ansible \
+  --keep-latest-packages 2 \
+  --strategy at-once \
+  {{ '--channel unstable' if molecule_inventory is defined else '--channel stable' }}
+
+[Install]
+WantedBy=default.target
