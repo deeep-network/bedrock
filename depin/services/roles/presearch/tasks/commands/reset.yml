@@ -11,7 +11,7 @@
     volumes:
       - presearch-node-storage:/app/node
     env:
-      REGISTRATION_CODE: "{{ presearch_code }}"
+      REGISTRATION_CODE: "{{ presearch_registration_code }}"
 
 - name: Assert
   when: "'molecule' in groups"

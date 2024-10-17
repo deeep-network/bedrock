@@ -1,0 +1,13 @@
+[Unit]
+Description=Timer to trigger auto-deploy script
+Requires=auto-deploy.service hab-supervisor.service
+
+[Timer]
+Unit=auto-deploy.service
+OnUnitInactiveSec=10min
+OnBootSec=10min
+RandomizedDelaySec=5min
+FixedRandomDelay=true
+
+[Install]
+WantedBy=timers.target

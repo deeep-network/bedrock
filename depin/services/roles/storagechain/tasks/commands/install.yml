@@ -36,6 +36,8 @@
     ipfs_api_http_headers:
       Access-Control-Allow-Origin: ["*"]
       Access-Control-Allow-Methods: ["PUT", "POST"]
+    ipfs_bootstrap:
+      - /ip4/94.72.127.176/tcp/4001/ipfs/12D3KooWPfL2QtUZoMWZoc9HQbi1TuLepME5rbfzYFf49reSMQaw
   ansible.builtin.include_role:
     name: depin.libs.ipfs
     tasks_from: commands/setup.yml

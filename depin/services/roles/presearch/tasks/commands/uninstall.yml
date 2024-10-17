@@ -6,10 +6,8 @@
     state: absent
 
 - name: Uninstall metrics
-  vars:
-    depin_cmd: uninstall
-  ansible.builtin.include_tasks:
-    file: tasks/metrics.yml
+  ansible.builtin.include_role:
+    name: depin.core.metrics
 
 - name: Assert
   when: "'molecule' in groups"
