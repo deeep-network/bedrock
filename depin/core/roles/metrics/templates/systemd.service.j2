@@ -10,9 +10,7 @@ User=nerdnode
 ExecStart=sudo /opt/pipx/venvs/ansible-core/bin/python3 /etc/deeep-network/collectors/{{ metrics_parent_role_name }}.py
 KillSignal=SIGINT
 Restart=on-failure
-
-StandardOutput=syslog
-StandardError=syslog
+WatchdogSec=60s
 
 [Install]
 WantedBy=multi-user.target

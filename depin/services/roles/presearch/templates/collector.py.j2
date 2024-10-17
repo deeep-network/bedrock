@@ -3,6 +3,7 @@ import os
 import requests
 import socket
 import time
+import systemd.daemon
 from pathlib import Path
 
 from prometheus_client import start_http_server, REGISTRY, GC_COLLECTOR, PLATFORM_COLLECTOR, PROCESS_COLLECTOR
@@ -109,4 +110,5 @@ if __name__ == "__main__":
 
   start_http_server({{ metrics_port[metrics_parent_role_name] }})
   while True:
+    systemd.daemon.notify('WATCHDOG=1')
     time.sleep(30)
