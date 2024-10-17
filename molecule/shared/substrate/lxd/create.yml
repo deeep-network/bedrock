@@ -1,0 +1,84 @@
+---
+- name: Manage LXD containers
+  hosts: localhost
+  gather_facts: false
+  connection: local
+  vars:
+    molecule_inventory:
+      molecule:
+        hosts: {}
+    molecule_yml:
+      platforms:
+        - name: instance
+          image: ubuntu:20.04
+          user: ansible
+
+  tasks:
+    - name: Ensure LXD is installed
+      ansible.builtin.command:
+        cmd: snap install lxd
+      become: true
+
+    - name: Initialize LXD (if not already initialized)
+      command: lxd init --auto
+      args:
+        creates: /var/lib/lxd/lxd.db
+      become: true
+
+    - name: Check if LXD container exists
+      command: lxc list "{{ platform['name'] }}" --format=json
+      register: lxd_container_info
+      ignore_errors: true
+      loop: "{{ molecule_yml['platforms'] }}"
+      loop_control:
+        loop_var: platform
+
+    - name: Debug container existence
+      ansible.builtin.debug:
+        var: lxd_container_info
+
+    - name: Create LXD containers if not exists
+      community.general.lxd_container:
+        name: "{{ platform['name'] }}"
+        state: started
+        source:
+          type: image
+          mode: pull
+          server: https://cloud-images.ubuntu.com/releases
+          protocol: simplestreams
+          alias: "f"
+      when: lxd_container_info.results[0].stdout == '[]'
+      loop: "{{ molecule_yml['platforms'] }}"
+      loop_control:
+        loop_var: platform
+
+    - name: Add LXD container to molecule_inventory
+      vars:
+        inventory_partial_yaml: |
+          molecule:
+            hosts:
+              {{ platform['name'] }}:
+                ansible_user: {{ platform['user'] }}
+      ansible.builtin.set_fact:
+        molecule_inventory: >
+          {{ molecule_inventory | combine(inventory_partial_yaml | from_yaml, recursive=true) }}
+      loop: "{{ molecule_yml['platforms'] }}"
+      loop_control:
+        loop_var: platform
+
+    - name: Dump molecule_inventory
+      ansible.builtin.copy:
+        content: |
+          {{ molecule_inventory | to_nice_yaml }}
+        dest: ../../inventory/molecule_inventory.yml
+        mode: '0600'
+
+    - name: Force inventory refresh
+      ansible.builtin.meta: refresh_inventory
+
+    - name: Fail if molecule group is missing
+      ansible.builtin.assert:
+        that: "'molecule' in groups"
+        fail_msg: |
+          molecule group was not found inside inventory groups: {{ groups }}
+      run_once: true
