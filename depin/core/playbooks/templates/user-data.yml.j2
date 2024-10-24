@@ -13,15 +13,25 @@ packages:
   - jq
   - ufw
   - unzip
+  - apt-transport-https
+  - ca-certificates
+  - gpg
 package_upgrade: true
 package_update: true
 
 ssh_pwauth: false
 
+groups:
+  - docker
+
 users:
   - name: nerdnode
     gecos: NerdNode Admin Account
-    groups: users,admin,wheel
+    groups:
+      - users
+      - admin
+      - wheel
+      - docker
     sudo: ALL=(ALL) NOPASSWD:ALL
     shell: /bin/bash
     lock_passwd: true
@@ -41,10 +51,26 @@ write_files:
         {{ pulumi_esc.stdout | default('') | indent( width=8 ) }}
 
 runcmd:
-  - [ env, PIPX_HOME=/opt/pipx, PIPX_BIN_DIR=/usr/local/bin, pipx, install, ansible-core ]
-  - [ env, PIPX_HOME=/opt/pipx, PIPX_BIN_DIR=/usr/local/bin, pipx, inject, ansible-core, psutil, netaddr, pytz, pynetbox, prometheus-client ]
-  - [ env, PIPX_HOME=/opt/pipx, PIPX_BIN_DIR=/usr/local/bin, pipx, install, ansible-sign ]
-  - [ env, PIPX_HOME=/opt/pipx, PIPX_BIN_DIR=/usr/local/bin, pipx, ensurepath ]
+  # setup pipx globablly
+  - env PIPX_HOME=/opt/pipx PIPX_BIN_DIR=/usr/local/bin pipx install ansible-core
+  - env PIPX_HOME=/opt/pipx PIPX_BIN_DIR=/usr/local/bin pipx inject ansible-core psutil netaddr pytz pynetbox prometheus-client
+  - env PIPX_HOME=/opt/pipx PIPX_BIN_DIR=/usr/local/bin pipx install ansible-sign
+  - env PIPX_HOME=/opt/pipx PIPX_BIN_DIR=/usr/local/bin pipx ensurepath
+  - install -m 0755 -d /etc/apt/keyrings
+  # install docker repo
+  - curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+  - echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
+  # install kubernetes repo
+  - curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.30/deb/Release.key | gpg --dearmor -o /etc/apt/keyrings/kubernetes.gpg
+  - echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/kubernetes.gpg] https://pkgs.k8s.io/core:/stable:/v1.30/deb/ /" | tee /etc/apt/sources.list.d/kubernetes.list > /dev/null
+  # install docker and kubectl
+  - apt-get update -y
+  - apt-get install -y docker-ce docker-ce-cli containerd.io kubectl 
+  - apt-mark hold kubectl
+  # install chef habitat
+  - curl https://raw.githubusercontent.com/habitat-sh/habitat/main/components/hab/install.sh | bash
+  - hab license accept
+  - hab origin key download deeep-network
   {% if not molecule_inventory is defined -%}
   - su - nerdnode -c "curl -s https://raw.githubusercontent.com/deeep-network/ansible_collections/main/raw/playbooks/collections_install.yml | ansible-playbook /dev/stdin"
   {% endif -%}
