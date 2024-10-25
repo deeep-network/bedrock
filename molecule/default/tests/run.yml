@@ -1,9 +1,4 @@
 ---
-- name: Load test variables
-  ansible.builtin.include_vars:
-    file: "../vars/{{ test_role | split('.') | last }}.yml"
-  failed_when: false
-
 - name: Block for error handling
   block:
     - name: Run tests

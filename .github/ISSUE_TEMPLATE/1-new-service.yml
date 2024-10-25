@@ -76,6 +76,8 @@ body:
             - status
             - reset / restart counter
 
+        - [ ] assigned metrics port to collector -- [here](https://github.com/deeep-network/bedrock/blob/4f423edd99283be38b6f3f63625086a29009487d/depin/core/roles/metrics/defaults/main.yml#L6)
+
         ### Logs
 
         - [ ] logs are collected via journald
