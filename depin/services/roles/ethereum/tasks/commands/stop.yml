@@ -25,7 +25,7 @@
       debug:
         var: _ethereum_besu.status
 
-    - name: Check service
+    - name: Ensure besu is inactive state
       ansible.builtin.assert:
         that:
           - _ethereum_besu['status']['ActiveState']=='inactive'
@@ -41,7 +41,7 @@
       debug:
         var: ethereum_teku.status
 
-    - name: Check teku service
+    - name: Ensure teku is inactive state
       ansible.builtin.assert:
         that:
           - ethereum_teku['status']['ActiveState']=='inactive'

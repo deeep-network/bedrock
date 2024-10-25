@@ -1,8 +1,7 @@
 ---
-- name: "ethereum_besu {{ ethereum_cmd }}"
+- name: Ethereum {{ ethereum_cmd }}
+  vars:
+    cmd_file: "{{ role_path }}/tasks/commands/{{ ethereum_cmd }}.yml"
+  when: cmd_file is file
   ansible.builtin.include_tasks:
-    file: "commands/{{ ethereum_cmd }}.yml"
-
-- name: Ensure metrics is installed
-  ansible.builtin.include_tasks:
-    file: metrics.yml
+    file: "{{ cmd_file }}"
