@@ -8,3 +8,4 @@ metrics_port:
   autonomi: 33002
   hychain: 33003
   storagechain: 33004
+  xai: 33005
