@@ -49,7 +49,7 @@ jobs:
           egress-policy: audit
       -
         name: Install YQ
-        uses: dcarbone/install-yq-action@64b1b9eb28920bb1a4c13c05321df284f9a8f940 # v1.1.1
+        uses: dcarbone/install-yq-action@57745969fbcd39c25b840743db859fbd4a12a909 # v1.2.0
         with:
           version: v4.44.3
           force: true
