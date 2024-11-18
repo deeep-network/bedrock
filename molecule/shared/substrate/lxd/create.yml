@@ -11,7 +11,7 @@
     molecule_yml:
       platforms:
         - name: instance
-          image_fingerprint: "602f1cb373c046923c69c17136eee708c6ea5e8b1d6b7618275ee0ec246b4fe5"
+          image_fingerprint: "noble"
           architecture: x86_64
           user: ansible
 
@@ -53,7 +53,7 @@
 
     - name: Create LXD containers if not exists using lxc launch
       ansible.builtin.command: >
-        lxc launch ubuntu-cloud:{{ platform['image_fingerprint'] }} {{ platform['name'] }}
+        lxc launch ubuntu:{{ platform['image_fingerprint'] }} {{ platform['name'] }}
       when: lxd_container_info.results[0].stdout == '[]'
       loop: "{{ molecule_yml['platforms'] }}"
       loop_control:
