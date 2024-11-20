@@ -1,4 +1,10 @@
 ---
+- name: Install programs using core.installer
+  ansible.builtin.include_role:
+    name: depin.core.installer
+  vars:
+    programs: "{{ xai_programs }}"
+
 - name: Create program folder
   become: true
   ansible.builtin.file:
@@ -6,15 +12,16 @@
     owner: root
     group: root
     mode: '0755'
-    dest: /opt/xai/{{ xai_version }}
-
+    dest: "{{ item.install_path }}"
+  loop: "{{ xai_programs }}"
 
 - name: Download binary to tmp
   become: true
   ansible.builtin.unarchive:
     remote_src: true
-    src: "{{ xai_download_url }}"
+    src: "{{ item.url }}"
     dest: /tmp
+  loop: "{{ xai_programs }}"
   failed_when: false
 
 - name: Find binary
@@ -22,42 +29,34 @@
   ansible.builtin.find:
     paths:
       - /tmp
-      - "{{ xai_download_path | default('/tmp') }}"
-    patterns: 'sentry-node-cli-linux$'
+    patterns: "{{ item.name }}"
     use_regex: true
     get_checksum: true
     recurse: true
-  register: _download
+  loop: "{{ xai_programs }}"
+  register: _downloads
 
 - name: Install node
-  when: _download['files'] | length > 0
   become: true
-  vars:
-    _files: |
-      {{ 
-        _download['files'] |
-        selectattr('checksum', 'equalto', xai_checksum | default(''))
-      }}
-    _path: "{{ (_files | first | default(_download['files'] | first))['path'] }}"
   block:
     - name: Copy required files
       ansible.builtin.copy:
         remote_src: true
-        src: "{{ _path }}"
-        dest: /opt/xai/{{ xai_version }}
+        src: "{{ (_downloads.results[loop.index0]['files'] | first).path }}"
+        dest: "{{ item.install_path }}"
         mode: '0755'
-
 
     - name: Symlink binary to path
       become: true
       ansible.builtin.file:
-        src: /opt/xai/{{ xai_version }}/{{ _path | basename }}
-        path: /usr/local/bin/xai
+        src: "{{ item.install_path }}/{{ item.name }}"
+        path: "{{ item.symlink }}"
         mode: '0755'
         owner: root
         group: root
-        state: hard
-        force: true        
+        state: link
+        force: true
+  loop: "{{ xai_programs }}"
 
 - name: Start node
   ansible.builtin.include_tasks:
