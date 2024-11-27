@@ -4,7 +4,7 @@
   tasks:
     - name: Get latest version of collection
       ansible.builtin.uri:
-        url: https://api.github.com/repos/deeep-network/ansible_collections/releases/latest
+        url: https://api.github.com/repos/deeep-network/bedrock/releases/latest
       register: _latest
 
     - name: Set version
@@ -14,7 +14,7 @@
     - name: Ensure directory exists
       become: true
       ansible.builtin.file:
-        path: /opt/deeep-network/ansible-collections
+        path: /opt/deeep-network/bedrock/{{ _version }}
         state: directory
         mode: '0755'
         recurse: true
@@ -22,13 +22,13 @@
     - name: Download zip file
       become: true
       ansible.builtin.unarchive:
-        src: https://github.com/deeep-network/ansible_collections/releases/download/{{ _version }}/ansible-collections.zip
-        dest: /opt/deeep-network/ansible-collections
+        src: https://github.com/deeep-network/bedrock/releases/download/{{ _version }}/ansible-collections.zip
+        dest: /opt/deeep-network/bedrock/{{ _version }}
         remote_src: true
 
     - name: Install collections
       ansible.builtin.command:
-        chdir: /opt/deeep-network/ansible-collections
+        chdir: /opt/deeep-network/bedrock/{{ _version }}
         cmd: ansible-galaxy install -r requirements.yml
       register: ansible_galaxy_install
       changed_when: "'Nothing to do' not in ansible_galaxy_install.stdout"
