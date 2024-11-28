@@ -1,0 +1,27 @@
+---
+- name: Start node
+  become: true
+  ansible.builtin.service:
+    name: autonomi.service
+    enabled: true
+    daemon_reload: true
+    state: started
+
+# - name: Assert
+#   when: "'molecule' in groups"
+#   block:
+#     - name: Get service info
+#       become: true
+#       ansible.builtin.systemd:
+#         name: "autonomi"
+#       register: _autonomi
+
+#     - name: Check service
+#       ansible.builtin.assert:
+#         that:
+#           - _autonomi['status']['ActiveState']=='active'
+#         quiet: true
+
+#     - name: Set pid
+#       ansible.builtin.set_fact:
+#         _presearch_pid: "{{ _autonomi['status']['ExecMainPID'] }}"

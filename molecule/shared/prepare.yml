@@ -88,11 +88,11 @@
       register: ansible_galaxy_install
       changed_when: "'Nothing to do' not in ansible_galaxy_install.stdout"
 
-    - name: Install Netdata
-      ansible.builtin.include_role:
-        name: depin.core.netdata
+    # - name: Install Netdata
+    #   ansible.builtin.include_role:
+    #     name: depin.libs.netdata
 
     # only called directly due to testing
     - name: Update Netbox
       ansible.builtin.include_role:
-        name: depin.core.netbox
+        name: depin.libs.netbox

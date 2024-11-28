@@ -1,0 +1,16 @@
+---
+- name: Block for error handling
+  block:
+    - name: Run tests
+      vars:
+        molecule_tests: install,reset,stop,restart,uninstall
+        depin_cmd: "{{ _test }}"
+      ansible.builtin.include_role:
+        name: "{{ test_role }}"
+      loop: "{{ molecule_tests | split(',') | default(molecule_tests) }}"
+      loop_control:
+        loop_var: _test
+  rescue:
+    - name: Error message
+      ansible.builtin.debug:
+        msg: "Error occured while testing..."

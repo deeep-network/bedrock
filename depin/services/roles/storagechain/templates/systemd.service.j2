@@ -1,12 +1,13 @@
 [Unit]
 Description=Storagechain - File Server
-After=network.target ipfs-cluster-follow.service
-Upholds=ipfs.service ipfs-cluster-follow.service
+After=network.target ipfs-cluster-{{ storagechain_ipfs_cluster_type }}.service
+Upholds=ipfs-cluster-{{ storagechain_ipfs_cluster_type }}.service
+PropagatesStopTo=ipfs-cluster-{{ storagechain_ipfs_cluster_type }}.service
 
 [Service]
 User=ipfs
-Group=ipfs
-ExecStart=/usr/local/bin/storagechain
+WorkingDirectory={{ storagechain_dir | dirname }}
+ExecStart=/usr/local/bin/file-server-lin
 Restart=on-failure
 
 [Install]

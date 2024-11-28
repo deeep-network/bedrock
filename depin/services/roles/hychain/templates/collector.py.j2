@@ -2,12 +2,10 @@
 import os
 import socket
 import time
-import os
-import time
+from pathlib import Path
 import subprocess
 from subprocess import check_output
 import json
-
 
 from prometheus_client import start_http_server, REGISTRY, GC_COLLECTOR, PLATFORM_COLLECTOR, PROCESS_COLLECTOR
 from prometheus_client.core import GaugeMetricFamily
@@ -51,7 +49,7 @@ class MetricsCollector(Collector):
         {% endif %}
 
         hostname = socket.gethostname()
-        service = '{{ _name }}'
+        service = Path(__file__).stem
 
         _labels = ['device', 'instance', 'service']
         _label_values = [device, hostname, service]
@@ -67,12 +65,6 @@ class MetricsCollector(Collector):
 
         result.extend([g1, g2, g3])
         service_metrics_collected = 1
-                                    
-        hostname = socket.gethostname()
-        service = '{{ _name }}'
-
-        _labels = ['device', 'instance', 'service']
-        _label_values = [device, hostname, service]
 
         success = GaugeMetricFamily('service_metrics_collected','service metrics collected successfully', labels=_labels)
         success.add_metric(_label_values, value=service_metrics_collected)
@@ -85,7 +77,7 @@ if __name__ == "__main__":
     REGISTRY.unregister(PLATFORM_COLLECTOR)
     REGISTRY.unregister(PROCESS_COLLECTOR)
     REGISTRY.register(MetricsCollector())
-    role_name='role_name'
-    start_http_server({{ vars[role_name + '_metrics_port'] | int }})
+
+    start_http_server({{ metrics_port[metrics_parent_role_name] }})
     while True:
         time.sleep(30)

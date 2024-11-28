@@ -1,0 +1,28 @@
+#jinja2: trim_blocks:False
+[Unit]
+Description=IPFS Cluster {{ ipfs_cluster_type | capitalize }}
+After=network.target ipfs.service
+Upholds=ipfs.service
+PropagatesStopTo=ipfs.service
+
+[Service]
+User=ipfs
+Group=ipfs
+
+LimitNOFILE={{ ipfs_cluster_fd_max_files }}
+
+Environment="IPFS_CLUSTER_FD_MAX={{ ipfs_cluster_fd_max_files }}"
+{%- if ipfs_cluster_env_vars is defined %}
+{%- for env in ipfs_cluster_env_vars %}
+Environment="{{ env }}={{ ipfs_cluster_env_vars[env] }}"
+{%- endfor %}
+{% endif %}
+
+ExecStart={% filter regex_replace(" +", " ") -%}
+          /usr/local/bin/{{ ipfs_cluster_cli }} {{ ipfs_cluster_run_cmd }} {{ ipfs_cluster_command_args | default(omit) }}
+          {%- endfilter %}
+ExecStopPost=+/usr/bin/rm -f %h/{{ ipfs_cluster_config_dir }}/api-socket
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
