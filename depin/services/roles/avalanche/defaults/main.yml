@@ -1,8 +1,5 @@
 # defaults/main.yml
 
-# Metrics port for AvalancheGo
-avalanche_metrics_port: 33006
-
 # Command to execute (install, uninstall, etc.)
 avalanche_cmd: "{{ depin_cmd | default('install') }}"
 
