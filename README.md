@@ -31,6 +31,7 @@ pipx inject ansible-core requests pynetbox pyutils pytz netaddr
 
 ```bash
 pipx install ansible-lint
+
 ```
 
 ```bash

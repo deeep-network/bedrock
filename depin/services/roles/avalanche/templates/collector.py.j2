@@ -1,0 +1,98 @@
+#!/usr/bin/env python3
+import os
+import socket
+import time
+import subprocess
+from subprocess import check_output
+import json
+from pathlib import Path
+
+from prometheus_client import start_http_server, REGISTRY, GC_COLLECTOR, PLATFORM_COLLECTOR, PROCESS_COLLECTOR
+from prometheus_client.core import GaugeMetricFamily
+from prometheus_client.registry import Collector
+
+try:
+    from utils_lxd import lxd_get
+except ImportError as imp_exc:
+    LXD_UTILS_IMPORT_ERROR = imp_exc
+else:
+    LXD_UTILS_IMPORT_ERROR = None
+
+class MetricsCollector(Collector):
+    """Collector for Avalanche Node information"""
+    def total_uptime_count(self, autonomi_service_date):
+        total_uptime = 0
+        for x in autonomi_service_date:
+            state_uptime_list = autonomi_service_date[x].split(":")
+            hours = 0
+            if len(state_uptime_list) <= 2:
+                minutes = int(state_uptime_list[0])
+                seconds = int(state_uptime_list[1])
+            else:
+                hours = int(state_uptime_list[0])
+                minutes = int(state_uptime_list[1])
+                seconds = int(state_uptime_list[2])
+            total_uptime += seconds + minutes * 60 + hours * 3600
+        return total_uptime
+
+    def collect(self):
+        result = []
+        service_metrics_collected = 1
+
+        device = 'molecule'
+        # Fetch device hostname - LXD specific feature
+        if LXD_UTILS_IMPORT_ERROR is None:
+            device_info = lxd_get("1.0/config/user.location")
+            if 'value' in device_info:
+                device = device_info['value']
+
+        hostname = socket.gethostname()
+        service = Path(__file__).stem
+
+        _labels = ['device', 'instance', 'service']
+        _label_values = [device, hostname, service]
+
+        # Placeholder values for state_uptime and total_uptime
+        state_uptime = 12345  # Replace with actual calculation
+        total_uptime = 67890  # Replace with actual calculation
+
+        success = GaugeMetricFamily(
+            'service_metrics_collected',
+            'Service metrics collected successfully',
+            labels=_labels
+        )
+        success.add_metric(_label_values, value=service_metrics_collected)
+
+        current_state_uptime = GaugeMetricFamily(
+            'current_state_uptime',
+            'Seconds in current state',
+            labels=_labels
+        )
+        current_state_uptime.add_metric(_label_values, value=state_uptime)
+
+        total_uptime_metric = GaugeMetricFamily(
+            'total_uptime',
+            'Seconds in last 24 hours',
+            labels=_labels
+        )
+        total_uptime_metric.add_metric(_label_values, value=total_uptime)
+
+        result.extend([success, current_state_uptime, total_uptime_metric])
+
+        return result
+
+if __name__ == "__main__":
+    REGISTRY.unregister(GC_COLLECTOR)
+    REGISTRY.unregister(PLATFORM_COLLECTOR)
+    REGISTRY.unregister(PROCESS_COLLECTOR)
+    REGISTRY.register(MetricsCollector())
+
+    # Use the file name stem as the role name
+    role_name = Path(__file__).stem
+
+    # Set the metrics port (default to 8000 or fetch from environment variable)
+    metrics_port = int(os.getenv(f'{role_name.upper()}_METRICS_PORT', 8000))
+    start_http_server(metrics_port)
+
+    while True:
+        time.sleep(30)

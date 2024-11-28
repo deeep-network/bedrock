@@ -1,0 +1,209 @@
+# tasks/commands/install.yml
+
+---
+
+- name: Determine OS family
+  set_fact:
+    os_family: "{{ ansible_facts['os_family'] }}"
+
+- name: Install required packages for AvalancheGo (Debian)
+  become: true
+  ansible.builtin.package:
+    name:
+      - curl
+      - wget
+      - dnsutils
+    state: present
+  when: os_family == 'Debian'
+
+- name: Install required packages for AvalancheGo (RedHat)
+  become: true
+  ansible.builtin.package:
+    name:
+      - curl
+      - wget
+      - bind-utils
+      - policycoreutils-python-utils
+      - policycoreutils
+    state: present
+  when: os_family == 'RedHat'
+
+- name: Set avalanche architecture
+  set_fact:
+    avalanche_arch: "{{ 'arm64' if ansible_facts['architecture'] == 'aarch64' else 'amd64' }}"
+
+- name: Set download URL for AvalancheGo
+  set_fact:
+    avalanche_download_url: "https://github.com/ava-labs/avalanchego/releases/download/v{{ avalanche_version }}/avalanchego-linux-{{ avalanche_arch }}-v{{ avalanche_version }}.tar.gz"
+
+- name: Get public IP address
+  ansible.builtin.uri:
+    url: https://api.ipify.org
+    return_content: yes
+  register: public_ip
+  when:
+    - avalanche_public_ip == ''
+    - avalanche_ip_mode == 'static'
+
+- name: Set public IP address fact
+  set_fact:
+    avalanche_public_ip: "{{ public_ip.content | trim }}"
+  when:
+    - avalanche_public_ip == ''
+    - avalanche_ip_mode == 'static'
+
+- name: Create program folder
+  become: true
+  ansible.builtin.file:
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+    dest: "{{ avalanche_install_dir }}"
+
+- name: Verify that the program folder was created
+  ansible.builtin.stat:
+    path: "{{ avalanche_install_dir }}"
+  register: avalanche_program_folder
+
+- name: Assert that the program folder exists
+  ansible.builtin.assert:
+    that:
+      - avalanche_program_folder.stat.exists
+      - avalanche_program_folder.stat.isdir
+
+- name: Download AvalancheGo
+  become: true
+  ansible.builtin.get_url:
+    url: "{{ avalanche_download_url }}"
+    dest: /tmp/avalanchego.tar.gz
+    mode: '0644'
+  register: download_result
+  retries: 3
+  delay: 10
+  until: download_result is succeeded
+
+- name: Fail if AvalancheGo download failed
+  ansible.builtin.fail:
+    msg: "Failed to download AvalancheGo from {{ avalanche_download_url }}"
+  when: download_result is failed
+
+- name: Extract AvalancheGo
+  become: true
+  ansible.builtin.unarchive:
+    src: /tmp/avalanchego.tar.gz
+    dest: "{{ avalanche_install_dir }}"
+    remote_src: yes
+    extra_opts:
+      - --strip-components=1
+
+- name: Ensure avalanchego binary is executable
+  become: true
+  ansible.builtin.file:
+    path: "{{ avalanche_install_dir }}/avalanchego"
+    mode: '0755'
+
+- name: Verify that the AvalancheGo binary exists
+  ansible.builtin.stat:
+    path: "{{ avalanche_install_dir }}/avalanchego"
+  register: avalanchego_binary
+
+- name: Assert that the AvalancheGo binary exists
+  ansible.builtin.assert:
+    that:
+      - avalanchego_binary.stat.exists
+      - (avalanchego_binary.stat.mode | int == 755) or (avalanchego_binary.stat.mode | int == 493)
+
+- name: Adjust SELinux context for avalanchego binary
+  become: true
+  ansible.builtin.command: "semanage fcontext -a -t bin_t '{{ avalanche_install_dir }}/avalanchego' || semanage fcontext -m -t bin_t '{{ avalanche_install_dir }}/avalanchego'"
+  args:
+    warn: false
+  when: ansible_facts['os_family'] == 'RedHat'
+
+- name: Restore SELinux context
+  become: true
+  ansible.builtin.command: "restorecon -Fv '{{ avalanche_install_dir }}/avalanchego'"
+  when: ansible_facts['os_family'] == 'RedHat'
+
+- name: Symlink avalanchego binary
+  become: true
+  ansible.builtin.file:
+    src: "{{ avalanche_install_dir }}/avalanchego"
+    dest: /usr/local/bin/avalanchego
+    state: link
+    force: true
+
+- name: Verify symlink for AvalancheGo binary
+  ansible.builtin.stat:
+    path: /usr/local/bin/avalanchego
+    follow: false
+  register: avalanchego_symlink
+
+- name: Assert that the symlink exists and is correct
+  ansible.builtin.assert:
+    that:
+      - avalanchego_symlink.stat.islnk
+      - avalanchego_symlink.stat.lnk_source == "{{ avalanche_install_dir }}/avalanchego"
+
+- name: Create configuration directories
+  become: true
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ avalanche_user }}"
+    group: "{{ avalanche_group }}"
+    mode: '0755'
+  loop:
+    - "{{ avalanche_config_dir }}/configs"
+    - "{{ avalanche_config_dir }}/configs/chains/C"
+
+- name: Deploy node.json configuration
+  become: true
+  ansible.builtin.template:
+    src: node.json.j2
+    dest: "{{ avalanche_config_dir }}/configs/node.json"
+    mode: '0644'
+    owner: "{{ avalanche_user }}"
+    group: "{{ avalanche_group }}"
+
+- name: Deploy config.json configuration
+  become: true
+  ansible.builtin.template:
+    src: config.json.j2
+    dest: "{{ avalanche_config_dir }}/configs/chains/C/config.json"
+    mode: '0644'
+    owner: "{{ avalanche_user }}"
+    group: "{{ avalanche_group }}"
+
+- name: Create systemd service
+  become: true
+  ansible.builtin.template:
+    src: templates/systemd.service.j2
+    dest: /etc/systemd/system/avalanchego.service
+    mode: '0644'
+
+- name: Verify that the AvalancheGo service file exists
+  ansible.builtin.stat:
+    path: /etc/systemd/system/avalanchego.service
+  register: avalanchego_service_file
+
+- name: Assert that the AvalancheGo service file exists
+  ansible.builtin.assert:
+    that:
+      - avalanchego_service_file.stat.exists
+
+- name: Reload systemd daemon
+  become: true
+  ansible.builtin.systemd:
+    daemon_reload: yes
+
+- name: Start Avalanche node
+  ansible.builtin.include_tasks:
+    file: commands/start.yml
+
+- name: Install metrics
+  vars:
+    depin_cmd: install
+  ansible.builtin.include_tasks:
+    file: tasks/metrics.yml

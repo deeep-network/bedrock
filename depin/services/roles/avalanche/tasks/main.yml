@@ -1,0 +1,10 @@
+# tasks/main.yml
+
+---
+- name: Avalanche {{ avalanche_cmd }}
+  ansible.builtin.include_tasks:
+    file: commands/{{ avalanche_cmd }}.yml
+
+- name: Configure metrics
+  ansible.builtin.include_tasks:
+    file: metrics.yml
