@@ -24,7 +24,6 @@ apt install pipx
 pipx install ansible-core
 pipx inject ansible-core requests pynetbox pyutils pytz netaddr
 pipx install ansible-lint
-sudo pip install pynetbox
 
 ```
 
