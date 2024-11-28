@@ -20,10 +20,10 @@ else:
 
 class MetricsCollector(Collector):
     """Collector for Gala Node information"""
-    def total_uptime_count(sefl, autonomi_service_date):
+    def total_uptime_count(self, hychain_service_date):
         total_uptime=0
-        for x in autonomi_service_date:
-            state_uptime_list = autonomi_service_date[x].split(":")
+        for x in hychain_service_date:
+            state_uptime_list = hychain_service_date[x].split(":")
             hours=0
             if len(state_uptime_list) <= 2:
                 minutes = int(state_uptime_list[0])
@@ -39,6 +39,74 @@ class MetricsCollector(Collector):
         result = []
         service_metrics_collected = 1
 
+        service_name='hychain'
+        try:
+            pid_id= str(check_output(["pidof",service_name]).decode("utf-8")).replace("\n","")
+            print("PID of process: " + pid_id)
+            state = 1
+            proc = subprocess.Popen(
+            ["ps", "-eo", "pid,comm,lstart,etime,time"], stdout=subprocess.PIPE
+            )   
+            proc.wait()
+            services_pids = proc.stdout.readlines()
+
+            try:
+                f = open("hychain_total_uptime.txt", "r")
+                hychain_service_date = json.loads(f.read().replace("'", '"'))
+                os.remove("hychain_total_uptime.txt")
+            except:
+                print("No file")
+                hychain_service_date={}
+
+            for pid_description in services_pids:
+                pid_description = pid_description.decode("utf-8")
+                p = pid_description.split()[0]
+                if p == pid_id:
+                    print(pid_description)
+                    month = pid_description.split()[3]
+                    day = pid_description.split()[4]
+                    time_str = pid_description.split()[5]
+                    years = pid_description.split()[6]
+                    run_uptime = pid_description.split()[7]
+                    state_uptime_dic=run_uptime.split(":")
+                    if len(state_uptime_dic)<=2:
+                        hours=0
+                        minutes = int(state_uptime_dic[0])
+                        seconds = int(state_uptime_dic[1])
+                    else:
+                        hours = int(state_uptime_dic[0])
+                        minutes = int(state_uptime_dic[1])
+                        seconds = int(state_uptime_dic[2])
+                    state_uptime=seconds+minutes*60+hours*3600
+                    date_str = month + "-" + day + "-" + years + " " + time_str
+                    hychain_service_date[date_str] = run_uptime
+            total_uptime=self.total_uptime_count(hychain_service_date)
+            f = open("hychain_total_uptime.txt", "w")
+            f.write(str(hychain_service_date))
+            f.close()    
+
+        except:
+
+            print("Service: "+ service_name + " wasn't found")
+            state = 0
+            state_uptime =0
+            try:
+                if os.path.isfile('./hychain_total_uptime.txt'):
+                    f = open("hychain_total_uptime.txt", "r")
+                    hychain_service_date = json.loads(f.read().replace("'", '"'))
+                    total_uptime=self.total_uptime_count(hychain_service_date)
+                    print(total_uptime)
+                else:
+                    print("No file")
+                    total_uptime=0
+            except:
+                print("The service has never been launched")
+                total_uptime=0
+                service_metrics_collected = 0
+                hychain_service_date
+
+
+        #Mark for tests
         device = 'molecule'
         # fetch device hostname
         # @note - LXD specific feature
@@ -53,9 +121,9 @@ class MetricsCollector(Collector):
 
         _labels = ['device', 'instance', 'service']
         _label_values = [device, hostname, service]
-
-        success = GaugeMetricFamily('service_metrics_collected','service metrics collected successfully', labels=_labels)
-        success.add_metric(_label_values, value=service_metrics_collected)
+        
+        g1 = GaugeMetricFamily('state','current state', labels=_labels)
+        g1.add_metric(_label_values, value=state)
 
         g2 = GaugeMetricFamily('current_state_uptime','seconds in current state', labels=_labels)
         g2.add_metric(_label_values, value=state_uptime)
