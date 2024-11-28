@@ -1,0 +1,63 @@
+---
+- name: Install programs using core.installer
+  ansible.builtin.include_role:
+    name: depin.core.installer
+  vars:
+    programs: "{{ xai_programs }}"
+
+- name: Create program folder
+  become: true
+  ansible.builtin.file:
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+    dest: "{{ item.install_path }}"
+  loop: "{{ xai_programs }}"
+
+- name: Download binary to tmp
+  become: true
+  ansible.builtin.unarchive:
+    remote_src: true
+    src: "{{ item.url }}"
+    dest: /tmp
+  loop: "{{ xai_programs }}"
+  failed_when: false
+
+- name: Find binary
+  become: true
+  ansible.builtin.find:
+    paths:
+      - /tmp
+    patterns: "{{ item.name }}"
+    use_regex: true
+    get_checksum: true
+    recurse: true
+  loop: "{{ xai_programs }}"
+  register: _downloads
+
+- name: Install node
+  become: true
+  block:
+    - name: Copy required files
+      ansible.builtin.copy:
+        remote_src: true
+        src: "{{ (_downloads.results[loop.index0]['files'] | first).path }}"
+        dest: "{{ item.install_path }}"
+        mode: '0755'
+
+    - name: Symlink binary to path
+      become: true
+      ansible.builtin.file:
+        src: "{{ item.install_path }}/{{ item.name }}"
+        path: "{{ item.symlink }}"
+        mode: '0755'
+        owner: root
+        group: root
+        state: link
+        force: true
+  loop: "{{ xai_programs }}"
+
+- name: Start node
+  ansible.builtin.include_tasks:
+    file: commands/start.yml
