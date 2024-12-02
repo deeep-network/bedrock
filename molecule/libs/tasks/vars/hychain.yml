@@ -1,4 +1,0 @@
-test_role: depin.services.hychain
-
-# override role variables
-hychain_code: 0x64c077bf4de3b020f874e8a9384cbdd98dafeb49cc9e78f0996771f86c0c48e2

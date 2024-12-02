@@ -1,0 +1,11 @@
+---
+- name: Manage Services
+  hosts: localhost
+  gather_facts: true
+  become: true
+  become_user: nerdnode
+  become_flags: "-i"
+  tasks:
+    - name: Debugging
+      ansible.builtin.debug:
+        msg: "Intentially left blank"

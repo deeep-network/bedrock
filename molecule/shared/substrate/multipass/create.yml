@@ -9,8 +9,10 @@
       register: pulumi_esc
 
     - name: Create cloud-init file
+      vars:
+        ansible_event_type: manage
       ansible.builtin.template:
-        src: ../../../depin/core/playbooks/templates/user-data.yml.j2
+        src: ../../../depin/core/playbooks/templates/guest.yml.j2
         dest: ../../cloud-init.yml
         mode: '0644'
 
