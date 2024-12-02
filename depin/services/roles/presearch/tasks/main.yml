@@ -1,7 +1,0 @@
----
-- name: Presearch {{ presearch_cmd }}
-  when:
-    - presearch_cmd is defined
-    - (role_path + '/tasks/commands/' + presearch_cmd + '.yml') is file
-  ansible.builtin.include_tasks:
-    file: "commands/{{ presearch_cmd }}.yml"

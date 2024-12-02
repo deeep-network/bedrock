@@ -1,7 +1,0 @@
----
-- name: Hychain {{ hychain_cmd }}
-  when:
-    - hychain_cmd is defined
-    - (role_path + '/tasks/commands/' + hychain_cmd + '.yml') is file
-  ansible.builtin.include_tasks:
-    file: "commands/{{ hychain_cmd }}.yml"

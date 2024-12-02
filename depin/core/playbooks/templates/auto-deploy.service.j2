@@ -1,10 +1,13 @@
 [Unit]
-Description=Auto-deploy ansbile trigger
+Description=Auto-Deploy Trigger
 After=network.target
 
 [Service]
 Type=oneshot
-ExecStart=/usr/bin/curl -H 'Content-Type: application/json' -d "{\"type\": \"deploy\"}" 127.0.0.1:33337/endpoint
+ExecStart=/usr/bin/curl \
+  -H 'Content-Type: application/json' \
+  -d '{"trigger": "{{ eda_rulebook | default('eda_vms') }}"}' \
+  127.0.0.1:33337/endpoint
 
 [Install]
 WantedBy=multi-user.target

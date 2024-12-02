@@ -1,4 +1,0 @@
----
-- name: Deploy via {{ deployer_substrate }}
-  ansible.builtin.include_tasks:
-    file: substrates/{{ deployer_substrate }}.yml

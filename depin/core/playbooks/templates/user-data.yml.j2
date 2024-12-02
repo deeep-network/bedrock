@@ -15,6 +15,8 @@ packages:
   - apt-transport-https
   - ca-certificates
   - gpg
+  - zfsutils-linux
+  - ksmtuned
 package_upgrade: true
 package_update: true
 
@@ -37,19 +39,19 @@ users:
       - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOEu3Yh+xr+oNfcj72bcqcZNhg3D1SzeHh+BQKX4/05V anthony@nerdnode.io
 
 write_files:
-    - path: /etc/environment
-      append: true
-      content: |
-        {{ pulumi_esc.stdout | default('') | indent( width=8 ) }}
-    - path: /etc/systemd/system/hab-supervisor.service
-      content: |
-        {{ lookup('template', './hab-supervisor.service.j2') | trim | indent( width=8 )}}
-    - path: /etc/systemd/system/auto-deploy.service
-      content: |
-        {{ lookup('template', './auto-deploy.service.j2') | trim | indent( width=8 ) }}
-    - path: /etc/systemd/system/auto-deploy.timer
-      content: |
-        {{ lookup('template', './auto-deploy.timer.j2') | trim | indent( width=8 ) }}
+  - path: /etc/environment
+    append: true
+    content: |
+      HAB_AUTH_TOKEN={{ ansible_env['HAB_AUTH_TOKEN'] | default(lookup('env', 'HAB_AUTH_TOKEN')) }}
+  - path: /etc/systemd/system/hab-supervisor.service
+    content: |
+      {{ lookup('ansible.builtin.template', 'hab-supervisor.service.j2') | trim | indent( width=8 )}}
+  - path: /etc/systemd/system/auto-deploy.service
+    content: |
+      {{ lookup('ansible.builtin.template', 'auto-deploy.service.j2') | trim | indent( width=8 ) }}
+  - path: /etc/systemd/system/auto-deploy.timer
+    content: |
+      {{ lookup('ansible.builtin.template', 'auto-deploy.timer.j2') | trim | indent( width=8 ) }}
 
 runcmd:
   - curl https://raw.githubusercontent.com/habitat-sh/habitat/main/components/hab/install.sh | bash
@@ -58,3 +60,6 @@ runcmd:
   - systemctl daemon-reload
   - systemctl enable hab-supervisor.service auto-deploy.timer
   - systemctl start hab-supervisor.service auto-deploy.timer
+  - hab pkg install deeep-network/step
+  - hab svc load deeep-network/ilert-heartbeat --strategy at-once
+  - hab svc load deeep-network/ansible --strategy at-once

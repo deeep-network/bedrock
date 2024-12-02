@@ -1,0 +1,21 @@
+---
+# @note symbolic linked to molecule/_shared/molecule.yml
+driver:
+  name: default
+dependency:
+  name: galaxy
+platforms:
+  - name: bedrock
+    image: ubuntu:noble
+provisioner:
+  name: ansible
+  env:
+    ANSIBLE_COLLECTIONS_PATH: $HOME/.ansible/collections:../_shared/collections
+  playbooks:
+    create: ../_shared/substrate/${MOLECULE_SUBSTRATE:-orbstack}/create.yml
+    destroy: ../_shared/substrate/${MOLECULE_SUBSTRATE:-orbstack}/destroy.yml
+    prepare: ../_shared/prepare.yml
+  inventory:
+    links:
+      hosts: ../_shared/inventory/
+      group_vars: ../_shared/group_vars/

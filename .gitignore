@@ -3,8 +3,8 @@
 *.tar*
 
 # molecule
-build
-**cloud-init.yml
+**/build
+**/cloud-init.yml
 
 .env*
 !.envrc
