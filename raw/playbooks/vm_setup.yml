@@ -1,4 +1,5 @@
 ---
+# @todo - update this for using chef habitat
 - name: Default Setup
   hosts: localhost
   gather_facts: true

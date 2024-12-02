@@ -12,17 +12,17 @@
       ansible.builtin.assert:
         that:
           - ansible_facts['memfree_mb'] | int >= min_available_memory_mb
-        fail_msg: "Not enough free memory. Required: {{ min_available_memory_mb }}MB, Available: {{ ansible_facts['memfree_mb'] | int }}MB"
+        fail_msg: "Not enough free memory. Required: {{ min_available_memory_mb }}MB, Available: {{ ansible_memfree_mb | int }}MB"
         success_msg: "Sufficient free memory available"
 
     - name: Check disk space
-      when: ansible_facts['mounts'] is defined
+      when: ansible_mounts is defined
       block:
         - name: Calculate available disk space
           ansible.builtin.set_fact:
             available_disk_gb: |
               {{
-                (ansible_facts['mounts'] | selectattr('mount', 'equalto', '/') |
+                (ansible_mounts | selectattr('mount', 'equalto', '/') |
                 map(attribute='size_available') | list | first | int / 1024 / 1024 / 1024) |
                 round(2)
               }}
@@ -37,28 +37,63 @@
     - name: Check load average
       ansible.builtin.assert:
         that:
-          - ansible_facts['loadavg']['1m'] | float <= (ansible_facts['processor_cores'] | int - 2)
-        fail_msg: "System load is too high: {{ ansible_facts['loadavg']['1m'] }}"
+          - ansible_loadavg['1m'] | float <= (ansible_facts['processor_cores'] | int - 2)
+        fail_msg: "System load is too high: {{ ansible_loadavg['1m'] }}"
         success_msg: "System load is acceptable"
 
     - name: Request a VM
       ansible.builtin.uri:
-        url: "http://example.com"
+        url: "https://api.nerdnode.io/api/v2/device/claim?device={{ ansible_nodename }}"
         return_content: true
         status_code: 200
-      register: _job
+      register: _claim
 
     - name: Wait for VM
+      when: _claim['json']['job_id'] is defined
       ansible.builtin.uri:
-        url: "http://example.com"
+        url: "https://api.nerdnode.io/api/v2/device/claim/results?job={{ _claim['json']['job_id'] }}"
         return_content: true
-        status_code: 200
-      register: _vm
-      until: url_check.status == 200
-      retries: 60  # Number of retries
+        status_code: [200, 206]
+      register: claim_results
+      until: claim_results['json']['vm'] is defined
+      failed_when:
+        - claim_results['status'] not in [200, 206]
+      retries: 60
       delay: 10
 
-    # trigger deploy
-    - name: Debug
-      ansible.builtin.debug:
-        msg: "{{ _vm }}"
+    - name: Create VM
+      delegate_to: localhost
+      when:
+        - ansible_virtualization_role == 'host'
+        - claim_results['json']['vm'] is defined
+      vars:
+        vm: "{{ claim_results['json']['vm'] }}"
+        _vcpus: "{{ vm['vcpus'] | int }}"
+        _memory: "{{ (vm['memory'] | int >= 1024) | ternary(vm['memory'] | int, '1024') }}MiB"
+        _disk: "{{ vm['disk'] | int }}GiB"
+      community.general.lxd_container:
+        name: "{{ vm['name'] }}"
+        ignore_volatile_options: true
+        type: virtual-machine
+        state: started
+        source:
+          protocol: simplestreams
+          type: image
+          mode: pull
+          alias: "24.04"
+          server: https://cloud-images.ubuntu.com/releases
+        config:
+          limits.cpu: "{{ _vcpus }}"
+          limits.memory: "{{ _memory }}"
+          cloud-init.user-data: "{{ lookup('ansible.builtin.template', 'guest.yml.j2') }}"
+        devices:
+          root:
+            path: /
+            pool: default
+            type: disk
+            size: "{{ _disk }}"
+        profiles:
+          - "default"
+        wait_for_ipv4_addresses: true
+        wait_for_container: true
+        timeout: 300
