@@ -3,37 +3,65 @@ name: release
 on:
   workflow_dispatch:
   push:
-    tags:
-    - "v*.*.*"
+    branches:
+      - main
+    paths-ignore:
+      - 'CHANGELOG.md'
 
 permissions:
-  contents: read
+  contents: write
+  packages: read
 
 jobs:
+  version:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.versioning.outputs.version }}
+      changelog: ${{ steps.versioning.outputs.clean_changelog }}
+      tag: ${{ steps.versioning.outputs.tag }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          fetch-depth: 0
+      
+      - name: Conventional Changelog Action
+        id: versioning
+        uses: TriPSs/conventional-changelog-action@v6
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          git-message: 'chore(release): {version}'
+          tag-prefix: 'v'
+          output-file: 'CHANGELOG.md'
+          skip-git-pull: true
+          fallback-version: '3.0.0' # swapped to a new automated version generator
+          pre-release: true
+
   setup:
+    needs: [version]
     runs-on: ubuntu-latest
     outputs:
       collections: ${{ steps.directories.outputs.dirs }}
+      version: ${{ needs.version.outputs.version }}
     steps:
-      - 
-        name: Harden Runner
+      - name: Harden Runner
         uses: step-security/harden-runner@c95a14d0e5bab51a9f56296a4eb0e416910cd350 # v2.10.3
         with:
           egress-policy: audit
-      -
-        name: Checkout
+          
+      - name: Checkout
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-      -
-        id: directories
+        
+      - id: directories
         run: |
-          echo "dirs=$(
-            find . -type f -name '*galaxy.yml' |
+          dirs=$(find . -type f -name '*galaxy.yml' |
             sed -r 's|/[^/]+$||' |
-            jq --raw-input --slurp --compact-output 'split("\n")[:-1]'
-          )" >> ${GITHUB_OUTPUT}
+            jq --raw-input --slurp --compact-output 'split("\n")[:-1]')
+          echo "Found directories: $dirs"
+          echo "dirs=$dirs" >> ${GITHUB_OUTPUT}
 
   build:
-    needs: setup
+    needs: [setup, version]
     runs-on: ubuntu-latest
     strategy:
       max-parallel: 1
@@ -42,78 +70,75 @@ jobs:
     env:
       ANSIBLE_SIGN_GPG_PASSPHRASE: ${{ secrets.ANSIBLE_SIGN_GPG_PASSPHRASE }}
     steps:
-      -
-        name: Harden Runner
+      - name: Harden Runner
         uses: step-security/harden-runner@c95a14d0e5bab51a9f56296a4eb0e416910cd350 # v2.10.3
         with:
           egress-policy: audit
-      -
-        name: Install YQ
+          
+      - name: Install YQ
         uses: dcarbone/install-yq-action@4075b4dca348d74bd83f2bf82d30f25d7c54539b # v1.3.1
         with:
           version: v4.44.3
           force: true
-      -
-        name: Checkout
+
+      - name: Checkout
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-      -
-        name: Create artifacts directory
-        run: |
-          mkdir artifacts
-      -
-        name: Import GPG key
+
+      - name: Create artifacts directory
+        run: mkdir artifacts
+
+      - name: Import GPG key
         uses: crazy-max/ghaction-import-gpg@cb9bde2e2525e640591a934b1fd28eef1dcaf5e5 # v6.2.0
         id: gpg-signing-key
         with:
           gpg_private_key: ${{ secrets.GPG_SIGNING_KEY }}
           passphrase: ${{ secrets.ANSIBLE_SIGN_GPG_PASSPHRASE }}
-      -
-        name: Export GPG public key
+
+      - name: Export GPG public key
         run: |
           gpg --armor --export --output='./artifacts/pubkey.gpg' ${{ steps.gpg-signing-key.outputs.name }}
-      -
-        name: Install ansible-sign
+
+      - name: Install ansible-sign
         run: pipx install ansible-sign==0.1.1
-      -
-        name: Install ansible-core
+
+      - name: Install ansible-core
         run: pipx install ansible-core==2.17.1
-      -
-        name: Sign collection
+
+      - name: Sign collection
         working-directory: ${{ matrix.dir }}
-        run: |
-          ansible-sign project gpg-sign .
-      - 
-        name: Build collection
+        run: ansible-sign project gpg-sign .
+
+      - name: Build collection
         working-directory: ${{ matrix.dir }}
         run: |
           ansible-galaxy collection build --output-path='${GITHUB_WORKSPACE}/artifacts'
-      -
-        name: Get collection name
+
+      - name: Get collection name
         id: collection
         run: |
           echo "name=$(echo ${{ matrix.dir }} | tr / . | sed -E 's/\.\.+//g')" >> $GITHUB_OUTPUT
-      -
-        name: Retrieve requirements.yml
+
+      - name: Retrieve requirements.yml
         uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4.1.8
         if: strategy.job-index != 0
         continue-on-error: true
         with:
           name: requirements-yml
-      -
-        name: Update requirements file
+
+      - name: Update requirements file
         run: >-
           export NAME=$(basename $(find ./artifacts -name '*.tar.gz'));
           yq -i '([{"name": strenv(NAME)}] + .collections | unique_by(.name)) as $uniq | .collections = $uniq'
           requirements.yml || yq -n '.collections += [{"name": strenv(NAME)}]' > requirements.yml
-      -
-        name: Upload requirements file
+
+      - name: Upload requirements file
         uses: actions/upload-artifact@65c4c4a1ddee5b72f698fdd19549f0f0fb45cf08 # v4.6.0
         with:
           name: requirements-yml
           path: ./requirements.yml
           overwrite: true
-      -
-        name: Upload artifact
+
+      - name: Upload artifact
         uses: actions/upload-artifact@65c4c4a1ddee5b72f698fdd19549f0f0fb45cf08 # v4.6.0
         with:
           name: ${{ steps.collection.outputs.name }}
@@ -121,8 +146,7 @@ jobs:
 
   package:
     runs-on: ubuntu-latest
-    if: ${{ always() }}
-    needs: build
+    needs: [build, version]
     permissions:
       contents: write
     steps:
@@ -131,26 +155,27 @@ jobs:
         with:
           egress-policy: audit
 
-      - 
-        name: Merge Artifacts
+      - name: Merge Artifacts
         uses: actions/upload-artifact/merge@65c4c4a1ddee5b72f698fdd19549f0f0fb45cf08 # v4.6.0
         with:
           name: ansible-collections
           delete-merged: true
-      -
-        name: Retrieve Artifacts
+          
+      - name: Retrieve Artifacts
         uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4.1.8
         id: release-artifacts
         with:
           name: ansible-collections
-      - 
-        name: Zip artifact for release
+          
+      - name: Zip artifact for release
         run: zip ansible-collections.zip ./* -r
-      -
-        name: Release
+        
+      - name: Create Release
         uses: softprops/action-gh-release@c95fe1489396fe8a9eb87c0abf8aa5b2ef267fda # v2.2.1
-        if: startsWith(github.ref, 'refs/tags/')
         with:
+          tag_name: v${{ needs.version.outputs.version }}
+          name: v${{ needs.version.outputs.version }}
+          body: ${{ needs.version.outputs.changelog }}
           files: ansible-collections.zip
-          make_latest: false
-          generate_release_notes: true
+          make_latest: true
+          generate_release_notes: false

@@ -1,0 +1,12 @@
+## used for molecule tests
+# !! shouldn't include depin collections
+# @note symbolic linked to molecule/_shared/requirements.yml
+collections:
+  - name: theko2fi.multipass
+    version: 0.3.0
+  - name: community.general
+    version: 9.3.0
+  - name: ansible.utils
+    version: 5.1.0
+  - name: community.docker
+    version: 3.12.1

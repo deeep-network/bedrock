@@ -1,19 +1,9 @@
 ---
-- name: Disable systemd service
+- Name: Stopping {{ role_name }}
   ansible.builtin.include_tasks: commands/stop.yml
 
-- name: Uninstall metrics
-  ansible.builtin.include_role:
-    name: depin.core.metrics
-
-## uninstall service and remove all associated files
-
-# relative to playbook (molecule - default)
-- name: Assert Uninstall
-  when: "'molecule' in groups"
-  block:
-    - name: Common install asserts
-      ansible.builtin.include_tasks:
-        file: tests/uninstall.yml
-
-    # unique asserts go here
+- name: Uninstall {{ role_name }}
+  become: true
+  ansible.builtin.command: 
+    cmd: hab pkg uninstall deeep-network/{{ role-name }}
+  changed_when: false

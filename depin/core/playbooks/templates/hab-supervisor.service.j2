@@ -3,10 +3,12 @@ Description=The Chef Habitat Supervisor
 
 [Service]
 EnvironmentFile=/etc/environment
-ExecStart=/usr/bin/hab sup run deeep-network/ansible \
+ExecStart=/usr/bin/hab sup run \
   --keep-latest-packages 2 \
   --strategy at-once \
-  {{ '--channel unstable' if molecule_inventory is defined else '--channel stable' }}
+  --peer hab-bastion-1.lxd \
+  --peer hab-bastion-2.lxd \
+  --peer hab-bastion-3.lxd
 
 [Install]
 WantedBy=default.target

@@ -1,7 +1,0 @@
----
-- name: Metrics {{ metrics_cmd }}
-  vars:
-    cmd_file: "{{ role_path }}/tasks/commands/{{ metrics_cmd }}.yml"
-  when: cmd_file is file
-  ansible.builtin.include_tasks:
-    file: "{{ cmd_file }}"

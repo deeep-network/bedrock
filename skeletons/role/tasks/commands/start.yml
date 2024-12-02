@@ -1,2 +1,7 @@
 ---
-## start service
+- name: Start {{ role_name }}
+  become: true
+  ansible.builtin.command: 
+    cmd: hab svc load deeep-network/{{ role_name }} --group services --strategy rolling --topology leader
+    creates: /hab/svc/{{ role_name }}
+  changed_when: false

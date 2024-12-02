@@ -1,7 +1,0 @@
----
-- name: Netdata {{ netdata_cmd }}
-  vars:
-    cmd_file: "{{ role_path }}/tasks/commands/{{ netdata_cmd }}.yml"
-  when: cmd_file is file
-  ansible.builtin.include_tasks:
-    file: "{{ cmd_file }}"

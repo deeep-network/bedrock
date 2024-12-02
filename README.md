@@ -61,7 +61,7 @@ source ~/.zshrc
 
 ## Setup for Local Virtual Machines
 
-On the DeEEP Device - the main Ansible Controller is the Device itself which in turn can manage the VM's (via Incus). Each VM is also an independent Ansible Controller for itself. This setup requires every role to be `localhost` first when developed. This isn't the normal way Ansible is meant to be used (push model) so there are some gotchas and things we do that are slightly out of the norm. Being `localhost` first however provides the VMs the ability to configure themselves when necessary. It's also important to not that if it works via `localhost` it will always work being pushed (not always the case in reverse).
+On the DeEEP Device - the main Ansible Controller is the Device itself which in turn can manage the VM's (via Incus). Each VM is also an independent Ansible Controller for itself. This setup requires every role to be `localhost` first when developed. This isn't the normal way Ansible is meant to be used (push model) so there are some gotchas and things we do that are slightly out of the norm. Being `localhost` first however provides the VMs the ability to configure themselves when necessary. It's also important to note that if it works via `localhost` it will always work being pushed (not always the case in reverse).
 
 > [!NOTE] For testing, we skip the Incus layer. Meaning the Ansible Controller for tests is your local machine (acting like the Device). Pushing directly to the VM running locally (managed by Orbstack, multipass, KVM, or LXD). This is meant to simplify the testing process. Especially since MacOS support for intel based CPU architecture is not well supported.
 
@@ -95,6 +95,8 @@ snap install multipass
 
 ### linux/windows/macos
 
+> not well tested
+
 #### UTM - [docs](https://mac.getutm.app/)
 
 ```bash
@@ -102,6 +104,8 @@ brew install --cask utm
 ```
 
 ---
+
+> With restructure this needs more work
 
 ## Using Molecule
 
@@ -125,22 +129,22 @@ brew install --cask utm
     molecule converge
     ```
 
-4. test an **individual** service
+4. testing an **individual** service
+
+    4a. create new molecule scenario
+
+    > `molecule init scenario` works but requires modifications due to trying to use the same molecule across collection
 
     ```bash
-    molecule converge -- -e='fqcn=test'
-    molecule converge -- -e='fqcn=depin.services.test'
+    cp -r molecule/default molecule/test
     ```
 
-5. test **all** libs
+    4b. update converge.yml
+
+    Update the `converge.yml` to include the logic for testing the role
+
+    4c. run new scenario
 
     ```bash
-    molecule converge -s libs
-    ```
-
-6. test an **individual** lib
-
-    ```bash
-    molecule converge -s libs -- -e='fqcn=test'
-    molecule converge -s libs -- -e='fqcn=depin.libs.test'
+    molecule converge -s test
     ```
