@@ -1,0 +1,13 @@
+- name: DeEEP Network - Manager
+  hosts: localhost
+  gather_facts: true
+  sources:
+    - ansible.eda.webhook:
+        host: 127.0.0.1
+        port: 33337
+  rules:
+    - name: Manager triggered
+      condition: event.payload.type == 'deploy'
+      action:
+        run_playbook:
+          name: depin.core.deploy

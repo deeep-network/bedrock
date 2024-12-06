@@ -4,6 +4,7 @@ import requests
 import socket
 import time
 from pathlib import Path
+from systemd_watchdog_thread import run_watchdog
 
 from prometheus_client import start_http_server, REGISTRY, GC_COLLECTOR, PLATFORM_COLLECTOR, PROCESS_COLLECTOR
 from prometheus_client.core import GaugeMetricFamily, Summary
@@ -45,6 +46,7 @@ class MetricsCollector(Collector):
       return result
 
 if __name__ == "__main__":
+  run_watchdog()
   REGISTRY.unregister(GC_COLLECTOR)
   REGISTRY.unregister(PLATFORM_COLLECTOR)
   REGISTRY.unregister(PROCESS_COLLECTOR)

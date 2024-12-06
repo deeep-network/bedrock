@@ -34,7 +34,7 @@
         _vm:
           exists: "{{ _match is defined }}"
           name: "{{ _match['name'] | default(platform['name']) }}"
-          user: "{{ _match['config']['default_username'] | default('ansible') }}"
+          user: "{{ _match['config']['default_username'] | default('nerdnode') }}"
           image: "{{ platform['image'] }}"
       ansible.builtin.set_fact:
         orbstack_vms: "{{ (orbstack_vms | default([])) + [_vm] }}"

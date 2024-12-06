@@ -18,6 +18,7 @@ storagechain_version: v3.1.5
 storagechain_dir: /opt/storagechain/{{ storagechain_version }}
 
 storagechain_cluster_secret: a89fe67688f00ee7cb5eb25084f9971174433cd15a6349783a2c268b8bed730a
+storagechain_cluster_bootstrap: /ip4/94.72.127.176/tcp/9096/p2p/12D3KooWFzRLHNCx88WhrCkNGGb1SNRj8TCajzErfa4nJtfniA2B
 
 storagechain_node_name: "{{ lookup('env', 'STORAGECHAIN_CUSTOM_NAME') | default(storagechain_credentials['custom_fields']['custom_name']) }}"
 storagechain_node_id: "{{ lookup('env', 'STORAGECHAIN_NODE_ID') | default(storagechain_credentials['custom_fields']['nodeid']) }}"
