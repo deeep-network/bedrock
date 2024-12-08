@@ -1,4 +1,0 @@
-recursive-include plugins *
-recursive-include roles *
-
-exclude galaxy.yml MANIFEST.json FILES.json *.gz *.md .*
