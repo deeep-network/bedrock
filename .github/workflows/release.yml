@@ -2,20 +2,58 @@ name: release
 
 on:
   workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to deploy (e.g. v1.2.3 or v1.2.3-alpha)'
+        required: true
+        type: string
   push:
     tags:
     - "v*.*.*"
+    - "v*.*.*-*"
 
 permissions:
   contents: read
 
 jobs:
+  create-tag:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch'
+    steps:
+      -
+        name: Validate version format
+        run: |
+          if ! [[ ${{ github.event.inputs.version }} =~ ^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-[a-zA-Z0-9]+)?$ ]]; then
+            echo "Invalid version format. Must be like v1.2.3 or v1.2.3-alpha"
+            exit 1
+          fi
+      -
+        name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          fetch-depth: 0
+      -
+        name: Check if tag exists
+        run: |
+          if git tag -l | grep -q "^${{ github.event.inputs.version }}$"; then
+            echo "Tag ${{ github.event.inputs.version }} already exists"
+            exit 1
+          fi
+      -
+        name: Create and push tag
+        run: |
+          git tag ${{ github.event.inputs.version }}
+          git push origin ${{ github.event.inputs.version }}
+
   setup:
+    needs: [create-tag]
+    if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && success())
     runs-on: ubuntu-latest
     outputs:
       collections: ${{ steps.directories.outputs.dirs }}
+      version: ${{ steps.get-version.outputs.version }}
     steps:
-      - 
+      -
         name: Harden Runner
         uses: step-security/harden-runner@0080882f6c36860b6ba35c610c98ce87d4e2f26f # v2.10.2
         with:
@@ -24,17 +62,27 @@ jobs:
         name: Checkout
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       -
+        id: get-version
+        name: Get version
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "version=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
+          else
+            echo "version=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+          fi
+      -
         id: directories
         run: |
-          echo "dirs=$(
-            find . -type f -name '*galaxy.yml' |
+          dirs=$(find . -type f -name '*galaxy.yml' |
             sed -r 's|/[^/]+$||' |
-            jq --raw-input --slurp --compact-output 'split("\n")[:-1]'
-          )" >> ${GITHUB_OUTPUT}
+            jq --raw-input --slurp --compact-output 'split("\n")[:-1]')
+          echo "Found directories: $dirs"
+          echo "dirs=$dirs" >> ${GITHUB_OUTPUT}
 
   build:
-    needs: setup
+    needs: [setup]
     runs-on: ubuntu-latest
+    if: ${{ always() }}
     strategy:
       max-parallel: 1
       matrix:
@@ -121,17 +169,18 @@ jobs:
 
   package:
     runs-on: ubuntu-latest
-    if: ${{ always() }}
+    if: ${{ always() && needs.build.result != 'skipped' }}
     needs: build
     permissions:
       contents: write
     steps:
-      - name: Harden Runner
+      -
+        name: Harden Runner
         uses: step-security/harden-runner@0080882f6c36860b6ba35c610c98ce87d4e2f26f # v2.10.2
         with:
           egress-policy: audit
 
-      - 
+      -
         name: Merge Artifacts
         uses: actions/upload-artifact/merge@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # v4.4.3
         with:
@@ -143,7 +192,7 @@ jobs:
         id: release-artifacts
         with:
           name: ansible-collections
-      - 
+      -
         name: Zip artifact for release
         run: zip ansible-collections.zip ./* -r
       -
