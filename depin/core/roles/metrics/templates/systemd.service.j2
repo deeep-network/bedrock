@@ -5,14 +5,12 @@ Description=Prometheus collector - {{ metrics_parent_role_name }}
 After=network-online.target
 
 [Service]
-Type=simple
+Type=notify
 User=nerdnode
-ExecStart=sudo /opt/pipx/venvs/ansible-core/bin/python3 /etc/deeep-network/collectors/{{ metrics_parent_role_name }}.py
+ExecStart=/opt/pipx/venvs/ansible-core/bin/python3 /etc/deeep-network/collectors/{{ metrics_parent_role_name }}.py
 KillSignal=SIGINT
 Restart=on-failure
-
-StandardOutput=syslog
-StandardError=syslog
+WatchdogSec=60
 
 [Install]
 WantedBy=multi-user.target

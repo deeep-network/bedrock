@@ -61,7 +61,7 @@
     - name: Ensure collection directory exists
       become: true
       ansible.builtin.file:
-        path: /opt/deeep-network/ansible-collections
+        path: /opt/deeep-network/bedrock/dev
         state: directory
         mode: '0755'
 
@@ -71,28 +71,9 @@
       become: true
       ansible.builtin.copy:
         src: "{{ _file }}"
-        dest: /opt/deeep-network/ansible-collections
+        dest: /opt/deeep-network/bedrock/dev
         mode: '0644'
       loop: "{{ query('fileglob', _glob) }}"
       loop_control:
         loop_var: _file
         label: "{{ _file | basename }}"
-
-    - name: Install collections
-      become: true
-      become_user: nerdnode
-      become_flags: '-i'
-      ansible.builtin.command:
-        chdir: /opt/deeep-network/ansible-collections
-        cmd: ansible-galaxy install -r requirements.yml --force
-      register: ansible_galaxy_install
-      changed_when: "'Nothing to do' not in ansible_galaxy_install.stdout"
-
-    # - name: Install Netdata
-    #   ansible.builtin.include_role:
-    #     name: depin.libs.netdata
-
-    # only called directly due to testing
-    - name: Update Netbox
-      ansible.builtin.include_role:
-        name: depin.libs.netbox

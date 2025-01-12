@@ -1,0 +1,10 @@
+[Unit]
+Description=Auto-deploy ansbile trigger
+After=network.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/curl -H 'Content-Type: application/json' -d "{\"type\": \"deploy\"}" 127.0.0.1:33337/endpoint
+
+[Install]
+WantedBy=multi-user.target
