@@ -1,10 +1,10 @@
-# [2.1.0-rc.0](https://github.com/deeep-network/bedrock/compare/v1.2.1...v2.1.0-rc.0) (2025-01-12)
+# [3.0.0](https://github.com/deeep-network/bedrock/compare/v1.2.1...v3.0.0) (2025-01-12)
 
 
 ### Bug Fixes
 
 * :bug: bugs squashed ([2b2b94b](https://github.com/deeep-network/bedrock/commit/2b2b94bb52a46fe8a783fd149404e27beb1a3262))
-* :bug: cleaned up artifacts from latest changes ([422ad43](https://github.com/deeep-network/bedrock/commit/422ad430e2446a40b39f12a8cce25b85e0e0b042))
+* :bug: cleaned up artifacts from latest changes ([52912e3](https://github.com/deeep-network/bedrock/commit/52912e384634acc768bf9e997cb3e327e816cb69))
 * :bug: cleaned up issue template ([3cf29f1](https://github.com/deeep-network/bedrock/commit/3cf29f129425726f3c4f3750e46137dd5feb56d6))
 * :bug: fixed url ([2259134](https://github.com/deeep-network/bedrock/commit/22591340a1662cc28a588ffef4343579f480cead))
 * :bug: more syslog fixes ([a010970](https://github.com/deeep-network/bedrock/commit/a0109709b38e29394bb2a53cea3f1fcccb3b4ec7))
@@ -22,7 +22,6 @@
 * :sparkles: adds depin.utils.devices ([f4ab3a3](https://github.com/deeep-network/bedrock/commit/f4ab3a3e2b3207b910d164cd2b719fd718d87c64))
 * :sparkles: adds presearch service ([bc67df5](https://github.com/deeep-network/bedrock/commit/bc67df596db865f9ec3469e81b410a7d1e1bfab0))
 * :sparkles: adds pulumi esc support ([14f9d18](https://github.com/deeep-network/bedrock/commit/14f9d1873a2a48915a08694e61e22285152cf547))
-* :sparkles: chef habitat and eda integration ([522b262](https://github.com/deeep-network/bedrock/commit/522b262c4939b55f23e57a747e2de37f2efc2b44))
 * add hychain service ([5ab0203](https://github.com/deeep-network/bedrock/commit/5ab0203e253ec72dad4aaf6c80ccf16df1f2e1d0))
 
 
