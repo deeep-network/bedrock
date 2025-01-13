@@ -48,35 +48,14 @@ body:
       description: Will be rendered in Markdown, allowing you to utilize its styling.
       value: |
         Initialized using:
-        ```bash
-        ansible-galaxy role init [NAME] --init-path=depin/services/roles
-        ```
-
-        ### Dependencies
-        If an Ansible Role is needed because of a dependency ensure it's also initialized in `depin.libs`
-        ```bash
-        ansible-galaxy role init [NAME] --init-path=depin/libs/roles
-        ```
-
         ### Commands
         Ensure all of the listed commands are implemented for the New Service.
 
-        - [ ] install (update)
+        - [ ] install
         - [ ] start
         - [ ] stop
-        - [ ] restart
         - [ ] uninstall
         - [ ] reset
-
-        ### Metrics
-
-        - [ ] custom Prometheus collector (as necessary)
-        > Not required if Service provides a prometheus endpoint that exposes the following
-          minimum requirements:
-            - status
-            - reset / restart counter
-
-        - [ ] assigned metrics port to collector -- [here](https://github.com/deeep-network/bedrock/blob/4f423edd99283be38b6f3f63625086a29009487d/depin/core/roles/metrics/defaults/main.yml#L6)
 
         ### Logs
 
@@ -92,8 +71,7 @@ body:
         ### Molecule
 
         - [ ] all `galaxy.yml` dependencies are added to `molecule/default/requirements.yml` for tests
-        - [ ] passes default tests
-        - [ ] passes metrics tests
+        - [ ] passes tests
 
         ### Registry
 

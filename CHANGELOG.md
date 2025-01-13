@@ -1,3 +1,12 @@
+## [3.0.1-rc.0](https://github.com/deeep-network/bedrock/compare/v3.0.0...v3.0.1-rc.0) (2025-01-13)
+
+
+### Bug Fixes
+
+* :bug: fixed rebranding issue ([9d7499d](https://github.com/deeep-network/bedrock/commit/9d7499d40bac1b22e81f58d259a3656b2c45116c))
+
+
+
 # [3.0.0](https://github.com/deeep-network/bedrock/compare/v1.2.1...v3.0.0) (2025-01-12)
 
 
@@ -47,27 +56,6 @@
 
 
 # [1.1.0](https://github.com/deeep-network/bedrock/compare/v1.0.0...v1.1.0) (2024-08-17)
-
-
-
-# [1.0.0](https://github.com/deeep-network/bedrock/compare/aa78ba653a499e09f41759f650a7e6a038967e20...v1.0.0) (2024-08-16)
-
-
-### Bug Fixes
-
-* :bug: create shared hosts ([d312ff7](https://github.com/deeep-network/bedrock/commit/d312ff7d9e020b7fb1e977e3e2325c1220ce843a))
-* :bug: molecule.yml fixes ([a0efaaa](https://github.com/deeep-network/bedrock/commit/a0efaaad14cecdc45728a4f2ef77c84825210a6c))
-* :bug: more flexible configs ([f7cbcc9](https://github.com/deeep-network/bedrock/commit/f7cbcc998501f33dda6c64e3a9a3b0a94dfb2d21))
-
-
-### Features
-
-* :sparkles: adds collection skeleton support and depin.services fixes ([ce6ade2](https://github.com/deeep-network/bedrock/commit/ce6ade2b4cdea7a96a4ff404d010d74bd0584761))
-* :sparkles: adds ipfs_cluster_follow ([a1823fc](https://github.com/deeep-network/bedrock/commit/a1823fc06a782022defadcf4c007e2d1ef476cc9))
-* :sparkles: adds release workflow ([e46bb21](https://github.com/deeep-network/bedrock/commit/e46bb21b3fe7d2a82dcf5fcc1c2e538ab6684a67))
-* :sparkles: adds sops (only pgp) ([4588456](https://github.com/deeep-network/bedrock/commit/4588456cdb20c23e10a638e3ab8e04ab48137557))
-* :sparkles: initial commit ([aa78ba6](https://github.com/deeep-network/bedrock/commit/aa78ba653a499e09f41759f650a7e6a038967e20))
-* :sparkles: libs rework and adds storagechain service ([4a5026c](https://github.com/deeep-network/bedrock/commit/4a5026cc3545e30962a4f9c0d6a8bdf162c18cac))
 
 
 

@@ -1,11 +1,17 @@
 changelog:
   categories:
+    - title: ⚠️ BREAKING CHANGES
+      labels:
+        - Semver-Major
+        - breaking-change
     - title: 🏕 Features
       labels:
         - '*'
       exclude:
         labels:
           - dependencies
+          - 'breaking-change'
+          - 'breaking'
     - title: 📌 Dependencies
       labels:
         - dependencies
