@@ -1,0 +1,48 @@
+#cloud-config
+
+fqdn: {{ device_vm_hostname | default(vm_hostname) }}
+manage_etc_hosts: localhost
+prefer_fqdn_over_hostname: true
+
+packages:
+  - git
+  - acl
+  - nano
+  - curl
+  - jq
+  - ufw
+  - unzip
+  - apt-transport-https
+  - ca-certificates
+  - gpg
+package_upgrade: true
+package_update: true
+
+ssh_pwauth: false
+
+groups:
+  - users
+
+users:
+  - name: nerdnode
+    gecos: NerdNode Admin Account
+    groups:
+      - admin
+      - wheel
+      - users
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    shell: /bin/bash
+    lock_passwd: true
+    ssh_authorized_keys:
+      - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOEu3Yh+xr+oNfcj72bcqcZNhg3D1SzeHh+BQKX4/05V anthony@nerdnode.io
+      - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICkYBKYaZlg7C39divuCWC8FOglu2rq/ohaeufR6/NBY corradob@corradob-t16g2
+
+write_files:
+  - path: /etc/environment
+    append: true
+    content: |
+      HAB_AUTH_TOKEN={{ ansible_env['HAB_AUTH_TOKEN'] | default(lookup('env', 'HAB_AUTH_TOKEN')) }}
+      PULUMI_ACCESS_TOKEN={{ ansible_env['PULUMI_ACCESS_TOKEN'] | default(lookup('env', 'PULUMI_ACCESS_TOKEN')) }}
+
+runcmd:
+  - curl https://raw.githubusercontent.com/deeep-network/bedrock/main/raw/setup-base.sh | bash

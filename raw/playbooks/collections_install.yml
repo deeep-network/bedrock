@@ -1,4 +1,4 @@
-- name: Install signed DePIN Collections
+- name: Install signed deeep Collections
   hosts: localhost
   gather_facts: true
   tasks:

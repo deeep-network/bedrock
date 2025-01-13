@@ -1,0 +1,132 @@
+---
+- name: Setup
+  hosts: localhost
+  gather_facts: true
+  become: true
+  tasks:
+    - name: Install ESC package
+      when: ansible_virtualization_role == 'host'
+      ansible.builtin.command: sudo hab pkg install deeep-network/esc
+      changed_when: false
+
+    - name: Install Metrics Collector
+      when: ansible_virtualization_role == 'guest'
+      block:
+        - name: Check for vmagent
+          ansible.builtin.command: ping -w30 -c1 vmagent.lxd
+          changed_when: false
+          ignore_errors: true
+          register: _vmagent
+
+        - name: Install Grafana Alloy
+          when: _vmagent.rc == 0
+          ansible.builtin.command: sudo hab pkg install deeep-network/grafana-alloy
+          changed_when: false
+
+    - name: Ensure resolved.conf.d directory exists
+      ansible.builtin.file:
+        path: /etc/systemd/resolved.conf.d
+        state: directory
+        mode: '0755'
+        owner: root
+        group: root
+
+    - name: Add DNS backup resolved conf
+      ansible.builtin.copy:
+        src: 99-dns-backup.conf
+        dest: /etc/systemd/resolved.conf.d/99-dns-backup.conf
+        mode: '0644'
+      notify: restart systemd-resolved
+
+    - name: Check for bastion ring
+      ansible.builtin.command: ping -w30 -c1 hab-bastion-{{ item }}.lxd
+      changed_when: false
+      ignore_errors: true
+      loop: "{{ range(1, 4) }}"
+      loop_control:
+        label: hab-bastion-{{ item }}
+      register: _bastion_ring
+
+    - name: Set facts
+      ansible.builtin.set_fact:
+        bastion_ring_exists: "{{ not _bastion_ring.results | map(attribute='rc') is any }}"
+
+    - name: Install hab-supervisor systemd services
+      ansible.builtin.template:
+        src: hab-supervisor.service.j2
+        dest: /etc/systemd/system/hab-supervisor.service
+        mode: '0644'
+      notify: restart hab-supervisor
+
+    - name: Install auto-deploy systemd services
+      ansible.builtin.template:
+        src: "{{ item }}.j2"
+        dest: /etc/systemd/system/{{ item }}
+        mode: '0644'
+      loop:
+        - auto-deploy.service
+        - auto-deploy.timer
+      notify: restart auto-deploy
+
+    - name: Ensure services are started
+      ansible.builtin.systemd:
+        name: "{{ item }}"
+        state: started
+        daemon_reload: true
+      loop:
+        - hab-supervisor.service
+        - auto-deploy.timer
+      register: _service_started
+
+    - name: Wait for hab-supervisor to be fully loaded
+      ansible.builtin.wait_for:
+        path: /hab/sup/default/LOCK
+        state: present
+        timeout: 30
+
+    - name: Load iLert Heartbeat
+      block:
+        - name: Install latest
+          ansible.builtin.command: sudo hab pkg install deeep-network/ilert-heartbeat
+          register: _install
+          until: _install.rc == 0
+          retries: 10
+          delay: 30
+          changed_when: false
+
+        - name: Force load heartbeat service
+          ansible.builtin.command: sudo hab svc load deeep-network/ilert-heartbeat --strategy at-once --force
+          register: _load
+          until: _load.rc == 0
+          retries: 10
+          delay: 30
+          changed_when: false
+
+  handlers:
+    - name: Restart systemd-resolved
+      ansible.builtin.systemd:
+        name: systemd-resolved
+        state: restarted
+      listen: restart systemd-resolved
+
+    - name: Restart hab-supervisor
+      when: >
+        not (_service_started.results |
+        selectattr('item', 'eq', 'hab-supervisor.service') |
+        map(attribute='changed') | first)
+      ansible.builtin.systemd:
+        name: hab-supervisor.service
+        state: restarted
+        daemon_reload: true
+      listen: restart hab-supervisor
+
+    - name: Restart auto-deploy
+      when: >
+        not (_service_started.results |
+        selectattr('item', 'eq', 'auto-deploy.timer') |
+        map(attribute='changed') | first)
+      ansible.builtin.systemd:
+        name: auto-deploy.timer
+        state: restarted
+        daemon_reload: true
+      listen: restart auto-deploy

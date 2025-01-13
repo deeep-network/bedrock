@@ -3,16 +3,11 @@
   hosts: localhost
   gather_facts: false
   tasks:
-    - name: Get ESC from Pulumi
-      ansible.builtin.command: esc open deeep-network/dev/services --format dotenv
-      changed_when: false
-      register: pulumi_esc
-
     - name: Create cloud-init file
       vars:
         ansible_event_type: manage
       ansible.builtin.template:
-        src: ../../../../depin/core/playbooks/templates/user-data.yml.j2
+        src: ../../../../deeep/core/playbooks/templates/user-data.yml.j2
         dest: ../../cloud-init.yml
         mode: '0644'
 

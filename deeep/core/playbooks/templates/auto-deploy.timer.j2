@@ -1,0 +1,13 @@
+[Unit]
+Description=Auto-Deploy Timer
+BindsTo=hab-supervisor.service
+
+[Timer]
+Unit=auto-deploy.service
+OnActiveSec=5min
+OnUnitInactiveSec=10min
+RandomizedDelaySec=5min
+FixedRandomDelay=true
+
+[Install]
+WantedBy=timers.target

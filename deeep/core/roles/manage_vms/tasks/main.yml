@@ -1,0 +1,14 @@
+---
+- name: Ensure running on Device
+  ansible.builtin.assert:
+    that: ansible_virtualization_role == 'host'
+
+- name: Prune VMs
+  when: not manage_vms_claim_on_self
+  ansible.builtin.include_tasks: prune.yml
+
+- name: Check capacity
+  ansible.builtin.include_tasks: check_capacity.yml
+
+- name: Claim VMs
+  ansible.builtin.include_tasks: claim.yml

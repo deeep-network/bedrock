@@ -1,0 +1,61 @@
+---
+- name: Load failed pending claims
+  vars:
+    _pending_claim: "{{ (ansible_local | default({})).pending_claim }}"
+  ansible.builtin.set_fact:
+    claims_to_process: "{{ _pending_claim.pending_claim_ids | default([]) }}"
+
+- name: Claim a VM
+  ansible.builtin.uri:
+    url: "https://beta.deeep.network/api/v1/device/{{ ansible_nodename }}/claim?self={{ manage_vms_claim_on_self }}"
+    return_content: true
+    status_code: 200
+    timeout: 60
+  register: _claim
+
+- name: Add new claim to processing list
+  vars:
+    _job_id: "{{ _claim.get('json', {}).get('data', {}).get('id') }}"
+    _new_claim: "{{ [_job_id] if _job_id else [] }}"
+  ansible.builtin.set_fact:
+    claims_to_process: "{{ _new_claim + claims_to_process }}"
+
+- name: Process claims
+  ansible.builtin.uri:
+    url: "https://beta.deeep.network/api/v1/device/{{ ansible_nodename }}/claim/{{ item }}?wait=true"
+    return_content: true
+    status_code: 200
+  register: _claim_results
+  loop: "{{ claims_to_process }}"
+  ignore_errors: true
+
+- name: Ensure facts.d directory exists
+  ansible.builtin.file:
+    path: /etc/ansible/facts.d
+    state: directory
+    mode: '0755'
+
+- name: Save failed claims for next run
+  vars:
+    failed_claims: >-
+      {{
+        _claim_results.results |
+        selectattr('failed', 'eq', true) |
+        map(attribute='item') |
+        list
+      }}
+  ansible.builtin.copy:
+    content: "{{ {'pending_claim_ids': failed_claims} | to_json }}"
+    dest: "/etc/ansible/facts.d/pending_claim.fact"
+    mode: '0644'
+
+- name: Deploy VMs
+  ansible.builtin.include_tasks: deploy.yml
+  loop: "{{ _claim_results.results | selectattr('failed', 'eq', false) }}"
+  loop_control:
+    loop_var: current_claim
+    label: "{{ current_claim.json.data.vm.name | default(current_claim.item) }}"
+  when:
+    - current_claim.json is not none
+    - current_claim.json.data.vm is defined
+    - current_claim.json.data.vm is not none

@@ -1,0 +1,59 @@
+---
+- name: Deploy VM
+  vars:
+    vm: "{{ current_claim.json.data.vm }}"
+    vm_hostname: "{{ vm['name'] | split('.') | first }}.box.nerd-node.com"
+    _vcpus: "{{ vm['vcpus'] | int }}"
+    _memory: "{{ (vm['memory'] | int >= 1024) | ternary(vm['memory'] | int, '1024') }}MiB"
+    _disk: "{{ vm['disk'] | int }}GiB"
+  block:
+    - name: Create VM with LXD
+      community.general.lxd_container:
+        name: "{{ vm['name'] }}"
+        ignore_volatile_options: true
+        type: virtual-machine
+        state: started
+        source:
+          protocol: simplestreams
+          type: image
+          mode: pull
+          alias: "24.04"
+          server: https://cloud-images.ubuntu.com/releases
+        config:
+          limits.cpu: "{{ _vcpus }}"
+          limits.memory: "{{ _memory }}"
+          cloud-init.user-data: "{{ lookup('ansible.builtin.template', 'user-data.yml.j2') }}"
+        devices:
+          root:
+            path: /
+            pool: default
+            type: disk
+            size: "{{ _disk }}"
+        profiles:
+          - "default"
+        wait_for_ipv4_addresses: true
+        wait_for_container: true
+        timeout: 300
+      register: _deployed_vm
+
+    # @todo -- should look into lxc configing this from host to VMs
+    # if it allows a source a truth and is updated without restarts
+    # would be ideal
+    - name: Set device private key
+      when: _deployed_vm.addresses is defined
+      no_log: true
+      block:
+        - name: Fetch private key from Pulumi
+          become: true
+          become_user: nerdnode
+          become_flags: "-i"
+          ansible.builtin.command:
+            cmd: /usr/local/bin/esc env open deeep-network/prod/deeep-device 'device.private_key'
+          changed_when: false
+          register: private_key
+
+        - name: Save private key file
+          become: true
+          ansible.builtin.command:
+            cmd: sudo lxc exec {{ vm['name'] }} -- su -c "echo {{ private_key.stdout }} | base64 -d > /device-private-key"
+          changed_when: false

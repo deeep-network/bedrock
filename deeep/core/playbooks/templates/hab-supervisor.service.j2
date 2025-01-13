@@ -1,0 +1,18 @@
+[Unit]
+Description=The Chef Habitat Supervisor
+
+[Service]
+EnvironmentFile=/etc/environment
+ExecStart=/usr/bin/hab sup run \
+  --keep-latest-packages 2 \
+{% if bastion_ring_exists %}
+  --strategy at-once \
+  --peer hab-bastion-1.lxd \
+  --peer hab-bastion-2.lxd \
+  --peer hab-bastion-3.lxd
+{% else %}
+  --strategy at-once
+{% endif %}
+
+[Install]
+WantedBy=default.target

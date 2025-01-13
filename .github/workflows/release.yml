@@ -3,10 +3,14 @@ name: release
 on:
   workflow_dispatch:
   push:
-    branches:
-      - main
+    tags:
+      - "v*.*.*"
     paths-ignore:
       - 'CHANGELOG.md'
+
+env:
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  GITHUB_USER: ${{ github.actor }}
 
 permissions:
   contents: write
@@ -16,36 +20,34 @@ jobs:
   version:
     runs-on: ubuntu-latest
     outputs:
-      version: ${{ steps.versioning.outputs.version }}
-      changelog: ${{ steps.versioning.outputs.clean_changelog }}
-      tag: ${{ steps.versioning.outputs.tag }}
+      version: ${{ steps.semver.outputs.next }}
     steps:
-      - name: Checkout
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           fetch-depth: 0
-      
-      - name: Conventional Changelog Action
-        id: versioning
-        uses: TriPSs/conventional-changelog-action@v6
+
+      - name: Get versio
+        uses: chaaz/versio-actions/install@v1.3
+
+      - name: Check projects
+        run: versio check
+
+      - name: Get Next Version
+        id: semver
+        uses: ietf-tools/semver-action@v1
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          git-message: 'chore(release): {version}'
-          tag-prefix: 'v'
-          output-file: 'CHANGELOG.md'
-          skip-git-pull: true
-          fallback-version: '3.0.0' # swapped to a new automated version generator
-          pre-release: true
+          token: ${{ github.token }}
+          branch: main
+          majorList: 'major'
 
   setup:
     needs: [version]
     runs-on: ubuntu-latest
     outputs:
       collections: ${{ steps.directories.outputs.dirs }}
-      version: ${{ needs.version.outputs.version }}
     steps:
       - name: Harden Runner
-        uses: step-security/harden-runner@c95a14d0e5bab51a9f56296a4eb0e416910cd350 # v2.10.3
+        uses: step-security/harden-runner@cb605e52c26070c328afc4562f0b4ada7618a84e # v2.10.4
         with:
           egress-policy: audit
           
@@ -71,7 +73,7 @@ jobs:
       ANSIBLE_SIGN_GPG_PASSPHRASE: ${{ secrets.ANSIBLE_SIGN_GPG_PASSPHRASE }}
     steps:
       - name: Harden Runner
-        uses: step-security/harden-runner@c95a14d0e5bab51a9f56296a4eb0e416910cd350 # v2.10.3
+        uses: step-security/harden-runner@cb605e52c26070c328afc4562f0b4ada7618a84e # v2.10.4
         with:
           egress-policy: audit
           
@@ -151,7 +153,7 @@ jobs:
       contents: write
     steps:
       - name: Harden Runner
-        uses: step-security/harden-runner@c95a14d0e5bab51a9f56296a4eb0e416910cd350 # v2.10.3
+        uses: step-security/harden-runner@cb605e52c26070c328afc4562f0b4ada7618a84e # v2.10.4
         with:
           egress-policy: audit
 
@@ -169,13 +171,15 @@ jobs:
           
       - name: Zip artifact for release
         run: zip ansible-collections.zip ./* -r
-        
+
+      - name: Debugging
+        run: echo "${{ needs.version.outputs.version }}"
+
       - name: Create Release
         uses: softprops/action-gh-release@c95fe1489396fe8a9eb87c0abf8aa5b2ef267fda # v2.2.1
         with:
-          tag_name: v${{ needs.version.outputs.version }}
-          name: v${{ needs.version.outputs.version }}
-          body: ${{ needs.version.outputs.changelog }}
+          tag_name: ${{ needs.version.outputs.version }}
+          name: ${{ needs.version.outputs.version }}
           files: ansible-collections.zip
           make_latest: true
-          generate_release_notes: false
+          generate_release_notes: true

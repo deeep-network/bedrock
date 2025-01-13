@@ -1,0 +1,15 @@
+options:
+  prev_tag: "versio-prev"
+
+projects:
+  - name: deeep.core
+    id: 1
+    root: deeep/core
+    labels: ansible
+    version:
+      file: galaxy.yml
+      yaml: version
+
+sizes:
+  use_angular: true
+  fail: [ "*" ]
