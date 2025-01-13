@@ -10,4 +10,4 @@
       condition: event.payload is defined
       action:
         run_playbook:
-          name: "{{ lookup('ansible.builtin.vars', 'depin.core.' + event.payload.trigger) }}"
+          name: "{{ lookup('ansible.builtin.vars', 'deeep.core.' + event.payload.trigger) }}"

@@ -44,24 +44,20 @@
         services_to_load: "{{ required_services | difference(running_services) }}"
         services_to_unload: "{{ running_services | difference(required_services) }}"
 
-    - name: Load missing services
-      ansible.builtin.command:
-        cmd: hab svc load deeep-network/{{ item }} --group services --strategy rolling --topology leader
-        creates: /hab/svc/{{ item }}
+    - name: Start services
+      vars:
+        service_cmd: start
+        service_name: "{{ item }}"
+      ansible.builtin.include_role:
+        name: deeep.core.service
       loop: "{{ services_to_load }}"
       when: services_to_load | length > 0
-      changed_when: false
 
-    - name: Unload extra services
-      ansible.builtin.command:
-        cmd: hab svc unload deeep-network/{{ item }}
-        removes: /hab/svc/{{ item }}
+    - name: Stop services
+      vars:
+        service_cmd: stop
+        service_name: "{{ item }}"
+      ansible.builtin.include_role:
+        name: deeep.core.service
       loop: "{{ services_to_unload }}"
       when: services_to_unload | length > 0
-      changed_when: false
-
-    - name: Display service changes
-      ansible.builtin.debug:
-        msg:
-          - "Services to load: {{ services_to_load | default([]) }}"
-          - "Services to unload: {{ services_to_unload | default([]) }}"

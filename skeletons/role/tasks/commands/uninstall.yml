@@ -1,9 +1,0 @@
----
-- Name: Stopping {{ role_name }}
-  ansible.builtin.include_tasks: commands/stop.yml
-
-- name: Uninstall {{ role_name }}
-  become: true
-  ansible.builtin.command: 
-    cmd: hab pkg uninstall deeep-network/{{ role-name }}
-  changed_when: false

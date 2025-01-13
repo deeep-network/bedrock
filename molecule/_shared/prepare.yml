@@ -14,7 +14,7 @@
       block:
         - name: Find collections
           ansible.builtin.find:
-            paths: ../../depin
+            paths: ../../deeep
             recurse: false
             file_type: directory
           register: _collections
