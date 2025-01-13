@@ -1,0 +1,6 @@
+---
+- name: Service {{ service_cmd }}
+  when:
+    - (role_path + '/tasks/commands/' + service_cmd + '.yml') is file
+  ansible.builtin.include_tasks:
+    file: "commands/{{ service_cmd }}.yml"

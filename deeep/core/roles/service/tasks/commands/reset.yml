@@ -1,6 +1,6 @@
 ---
-- Name: Uninstalling {{ role_name }}
+- Name: Uninstalling {{ service_name }}
   ansible.builtin.include_tasks: commands/uninstall.yml
 
-- name: Starting {{ role_name }}
+- name: Starting {{ service_name }}
   ansible.builtin.include_tasks: commands/start.yml

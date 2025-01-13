@@ -12,7 +12,7 @@
       vars:
         ansible_event_type: manage
       ansible.builtin.template:
-        src: ../../../../depin/core/playbooks/templates/user-data.yml.j2
+        src: ../../../../deeep/core/playbooks/templates/user-data.yml.j2
         dest: ../../cloud-init.yml
         mode: '0644'
 

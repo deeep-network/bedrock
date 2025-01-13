@@ -1,0 +1,3 @@
+---
+service_cmd: "{{ deeep_cmd | default('start') }}"
+service_name: "{{ deeep_service | default('ilert-heartbeat') }}"
