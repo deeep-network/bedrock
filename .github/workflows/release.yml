@@ -30,6 +30,7 @@ jobs:
         with:
           token: ${{ github.token }}
           branch: main
+          fallbackTag: '1.0.0'
 
   setup:
     needs: [version]
