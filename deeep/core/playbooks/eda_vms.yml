@@ -8,6 +8,10 @@
     min_available_memory_mb: 4096
     min_available_disk_gb: 120
   tasks:
+    - name: Ensure running on VM
+      ansible.builtin.assert:
+        that: ansible_virtualization_role == 'host'
+
     - name: Check disk space
       when: ansible_mounts is defined
       block:
@@ -91,8 +95,8 @@
 
     - name: Deploy VM
       when:
-        - ansible_virtualization_role == 'host'
         - _claim['json']['vm'] is defined
+        - _claim['json']['vm'] is not none
       block:
         - name: Create VM with LXD
           vars:
@@ -135,6 +139,9 @@
           no_log: true
           block:
             - name: Fetch private key from Pulumi
+              become: true
+              become_user: nerdnode
+              become_flags: "-i"
               ansible.builtin.command:
                 cmd: esc env open deeep-network/prod/deeep-device 'device.private_key'
               changed_when: false
@@ -143,7 +150,7 @@
             - name: Save private key file
               become: true
               ansible.builtin.command:
-                cmd: lxc exec {{ claim_results['json']['vm'] }} -- su -c "echo {{ private_key.stdout }} | base64 -d > /device-private-key"
+                cmd: sudo lxc exec {{ claim_results['json']['vm'] }} -- su -c "echo {{ private_key.stdout }} | base64 -d > /device-private-key"
               changed_when: false
 
     - name: Check for orphaned VM
@@ -155,7 +162,6 @@
 
     - name: Destroy VM
       when:
-        - ansible_virtualization_role == 'host'
         - _orphaned['json']['vms'] | length > 0
       block:
         - name: Delete a container

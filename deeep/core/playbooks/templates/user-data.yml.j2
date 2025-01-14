@@ -60,6 +60,6 @@ runcmd:
   - systemctl daemon-reload
   - systemctl enable hab-supervisor.service auto-deploy.timer
   - systemctl start hab-supervisor.service auto-deploy.timer
-  - hab pkg install deeep-network/step
-  - hab svc load deeep-network/ilert-heartbeat --strategy at-once
-  - hab svc load deeep-network/ansible --strategy at-once
+  - su - nerdnode -c 'hab pkg install deeep-network/step'
+  - su - nerdnode -c 'hab svc load deeep-network/ilert-heartbeat --strategy at-once'
+  - su - nerdnode -c 'hab svc load deeep-network/ansible --strategy at-once'
