@@ -161,15 +161,13 @@
         status_code: 200
       register: _orphaned
 
-    - name: Destroy VM
+    - name: Delete VM
       when:
         - _orphaned['json']['vms'] | length > 0
-      block:
-        - name: Delete a container
-          community.general.lxd_container:
-            name: "{{ _vm }}"
-            state: absent
-            type: virtual-machine
-          loop: "{{ _orphaned['json']['vms'] | list }}"
-          loop_control:
-            loop_var: _vm
+      community.general.lxd_container:
+        name: "{{ _vm }}"
+        state: absent
+        type: virtual-machine
+      loop: "{{ _orphaned['json']['vms'] | list }}"
+      loop_control:
+        loop_var: _vm
