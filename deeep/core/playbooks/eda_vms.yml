@@ -97,15 +97,15 @@
       when:
         - _claim['json']['vm'] is defined
         - _claim['json']['vm'] is not none
+      vars:
+        vm: "{{ _claim['json']['vm'] }}"
+        vm_hostname: "{{ vm['name'] | split('.') | first }}.box.nerd-node.com"
+        eda_rulebook: "eda_services"
+        _vcpus: "{{ vm['vcpus'] | int }}"
+        _memory: "{{ (vm['memory'] | int >= 1024) | ternary(vm['memory'] | int, '1024') }}MiB"
+        _disk: "{{ vm['disk'] | int }}GiB"
       block:
         - name: Create VM with LXD
-          vars:
-            vm: "{{ _claim['json']['vm'] }}"
-            vm_hostname: "{{ vm['name'] | split('.') | first }}.box.nerd-node.com"
-            eda_rulebook: "eda_services"
-            _vcpus: "{{ vm['vcpus'] | int }}"
-            _memory: "{{ (vm['memory'] | int >= 1024) | ternary(vm['memory'] | int, '1024') }}MiB"
-            _disk: "{{ vm['disk'] | int }}GiB"
           community.general.lxd_container:
             name: "{{ vm['name'] }}"
             ignore_volatile_options: true
@@ -142,15 +142,16 @@
               become: true
               become_user: nerdnode
               become_flags: "-i"
+              # @todo should be moved to a chef habitat package to be installed in /usr/local/bin
               ansible.builtin.command:
-                cmd: esc env open deeep-network/prod/deeep-device 'device.private_key'
+                cmd: $HOME/.pulumi/bin/esc env open deeep-network/prod/deeep-device 'device.private_key'
               changed_when: false
               register: private_key
 
             - name: Save private key file
               become: true
               ansible.builtin.command:
-                cmd: sudo lxc exec {{ claim_results['json']['vm'] }} -- su -c "echo {{ private_key.stdout }} | base64 -d > /device-private-key"
+                cmd: sudo lxc exec {{ vm['name'] }} -- su -c "echo {{ private_key.stdout }} | base64 -d > /device-private-key"
               changed_when: false
 
     - name: Check for orphaned VM

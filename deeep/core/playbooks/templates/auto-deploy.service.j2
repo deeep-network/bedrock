@@ -1,9 +1,11 @@
 [Unit]
 Description=Auto-Deploy Trigger
+Requires=hab-supervisor.service
 After=network.target
 
 [Service]
 Type=oneshot
+ExecStartPre=/bin/bash /run/bootstrap.sh
 ExecStart=/usr/bin/curl \
   -sH "Content-Type: application/json" \
   -d '{"trigger":"{{ eda_rulebook | default("eda_vms")}}"}' \

@@ -45,13 +45,16 @@ write_files:
       HAB_AUTH_TOKEN={{ ansible_env['HAB_AUTH_TOKEN'] | default(lookup('env', 'HAB_AUTH_TOKEN')) }}
   - path: /etc/systemd/system/hab-supervisor.service
     content: |
-      {{ lookup('ansible.builtin.template', 'hab-supervisor.service.j2') | trim | indent( width=8 )}}
+      {{ lookup('ansible.builtin.template', 'hab-supervisor.service.j2') | trim | indent( width=6 ) }}
+  - path: /run/bootstrap.sh
+    content: |
+      {{ lookup('ansible.builtin.file', 'bootstrap.sh') | trim | indent( width=6 ) }}
   - path: /etc/systemd/system/auto-deploy.service
     content: |
-      {{ lookup('ansible.builtin.template', 'auto-deploy.service.j2') | trim | indent( width=8 ) }}
+      {{ lookup('ansible.builtin.template', 'auto-deploy.service.j2') | trim | indent( width=6 ) }}
   - path: /etc/systemd/system/auto-deploy.timer
     content: |
-      {{ lookup('ansible.builtin.template', 'auto-deploy.timer.j2') | trim | indent( width=8 ) }}
+      {{ lookup('ansible.builtin.template', 'auto-deploy.timer.j2') | trim | indent( width=6 ) }}
 
 runcmd:
   - curl https://raw.githubusercontent.com/habitat-sh/habitat/main/components/hab/install.sh | bash
@@ -60,6 +63,4 @@ runcmd:
   - systemctl daemon-reload
   - systemctl enable hab-supervisor.service auto-deploy.timer
   - systemctl start hab-supervisor.service auto-deploy.timer
-  - su - nerdnode -c 'hab pkg install deeep-network/step'
-  - su - nerdnode -c 'hab svc load deeep-network/ilert-heartbeat --strategy at-once'
-  - su - nerdnode -c 'hab svc load deeep-network/ansible --strategy at-once'
+
