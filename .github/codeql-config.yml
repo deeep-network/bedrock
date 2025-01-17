@@ -1,0 +1,23 @@
+name: "Ansible Collection CodeQL Config"
+
+paths:
+  - '**/**/plugins/'
+  - '**/**/roles/'
+  - '**/**/playbooks/'
+paths-ignore:
+  - '**/tests/'
+  - '**/examples/'
+  - '**/*.md'
+
+queries:
+  - uses: security-and-quality
+
+query-filters:
+  - exclude:
+      id: py/path-injection  # If you're sure your paths are properly sanitized
+  - exclude:
+      id: py/unsafe-yaml-load  # If you're using safe_load consistently
+
+python:
+  python-version: "3.x"
+  max-memory: "4096"

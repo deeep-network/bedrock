@@ -1,0 +1,15 @@
+---
+- name: Manage VMs
+  hosts: localhost
+  gather_facts: true
+  become: true
+  tasks:
+    - name: Deploy VM
+      ansible.builtin.import_role:
+        name: deeep.core.device
+        tasks_from: commands/deploy.yml
+
+    - name: Prune VMs
+      ansible.builtin.import_role:
+        name: deeep.core.device
+        tasks_from: commands/prune.yml

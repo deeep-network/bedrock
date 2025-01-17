@@ -1,0 +1,6 @@
+---
+- name: Device {{ device_cmd }}
+  when:
+    - (role_path + '/tasks/commands/' + device_cmd + '.yml') is file
+  ansible.builtin.include_tasks:
+    file: "commands/{{ device_cmd }}.yml"
