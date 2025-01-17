@@ -3,5 +3,6 @@
   "conventionalCommits.scopes": [
     "ci",
     "tests"
-  ]
+  ],
+  "inline-bookmarks.view.showVisibleFilesOnly": false
 }

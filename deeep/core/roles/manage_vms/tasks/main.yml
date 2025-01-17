@@ -1,0 +1,9 @@
+---
+- name: Prune VMs
+  ansible.builtin.include_tasks: prune.yml
+
+- name: Check capacity
+  ansible.builtin.include_tasks: check_capacity.yml
+
+- name: Claim VMs
+  ansible.builtin.include_tasks: claim.yml

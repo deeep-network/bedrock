@@ -53,7 +53,6 @@ runcmd:
   - systemctl enable hab-supervisor.service
   - systemctl start hab-supervisor.service"
 
-    # Launch container with config directly
     echo "Starting to setup Chef Habitat Bastion ring..."
     sudo lxd activateifneeded
     sudo lxd waitready --timeout 300
