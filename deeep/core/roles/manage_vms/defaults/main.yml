@@ -1,0 +1,6 @@
+---
+vm_ram_gb: 4                # RAM per VM in GB
+vm_storage_gb: 60           # Storage per VM in GB
+vm_host_os_ram_gb: 2                # Host OS RAM reservation
+vm_host_ram_buffer_percent: 20      # RAM buffer percentage
+vm_host_storage_buffer_percent: 20  # Storage buffer percentage
