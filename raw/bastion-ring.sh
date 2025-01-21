@@ -1,6 +1,7 @@
 #!/bin/bash
 
 # Check if HAB_AUTH_TOKEN is set
+source /etc/environment
 if [ -z "${HAB_AUTH_TOKEN}" ]; then
     echo "Error: HAB_AUTH_TOKEN environment variable must be set"
     exit 1
@@ -53,5 +54,8 @@ runcmd:
   - systemctl start hab-supervisor.service"
 
     # Launch container with config directly
+    echo "Starting to setup Chef Habitat Bastion ring..."
+    sudo lxd activateifneeded
+    sudo lxd waitready --timeout 300
     sudo lxc launch ubuntu:22.04 hab-bastion-${i} --config=cloud-init.user-data="$config"
 done
