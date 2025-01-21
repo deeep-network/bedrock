@@ -30,16 +30,14 @@
         max_vms_ram: "{{ ((ansible_memtotal_mb / 1024 - host_os_ram_gb - (ansible_memtotal_mb / 1024 * ram_buffer_percent / 100)) / vm_ram_gb) | int }}"
         max_vms_storage: "{{ ((storage_total_gb | int * (100 - storage_buffer_percent) / 100) / vm_storage_gb) | int }}"
 
-    - name: Get current VM count
-      become: true
-      ansible.builtin.shell: set -o pipefail; lxc list -f csv -cn | grep "^vm-"
-      args:
-        executable: /bin/bash
-      register: current_vms
+    - name: Get current VMs
+      ansible.builtin.command: lxc list -f csv -cn
+      register: lxd_vms
       changed_when: false
 
-    - name: Determine limiting factor
+    - name: Set required facts
       ansible.builtin.set_fact:
+        current_vms: "{{ lxd_vms.stdout_lines | select('match', '^vm-.*') | list }}"
         max_vms: "{{ [max_vms_cpu, max_vms_ram] | min }}"
 
     - name: Generate capacity report content
@@ -47,7 +45,7 @@
         content: |
           System Capacity Report
           =====================
-          Current VMs.............: {{ current_vms.stdout_lines | length }}
+          Current VMs.............: {{ current_vms | length }}
           Hard Cap for VMs (CPU/RAM)..: {{ max_vms }}
 
           Resource Status:
@@ -55,7 +53,7 @@
           CPU................: {{ max_vms_cpu }} VMs ({{ ansible_processor_vcpus }} vCPUs × 2)
           RAM................: {{ max_vms_ram }} VMs ({{ (ansible_memtotal_mb / 1024) | float | round }}GB total)
           Storage............: {{ max_vms_storage | int }} VMs ({{ storage_total_gb | float | round }}GB total)
-          {% if (current_vms.stdout_lines | length) > (max_vms_storage | int) %}
+          {% if (current_vms | length) > (max_vms_storage | int) %}
           WARNING: Storage capacity exceeded recommended limit of {{ max_vms_storage | int }} VMs
           {% endif %}
         dest: "/var/log/vm_capacity_report.txt"
@@ -63,7 +61,7 @@
 
     - name: Check if new VM can be created
       ansible.builtin.assert:
-        that: (current_vms.stdout_lines | length) + 1 <= max_vms | int
+        that: (current_vms | length) + 1 <= max_vms | int
         fail_msg: "Would exceed calculated maximum. View report: `cat /var/log/vm_capacity_report.txt`"
 
     - name: Check if pressure metrics are available
@@ -192,7 +190,7 @@
         _expected: "{{ _vms['json']['expected'] }}"
         _orphaned: "{{ _vms['json']['orphaned'] }}"
       ansible.builtin.set_fact:
-        _decomissioning: "{{ (current_vms.stdout_lines | difference(_expected)) + _orphaned | unique }}"
+        _decomissioning: "{{ (current_vms | difference(_expected)) + _orphaned | unique }}"
 
     - name: Delete VM
       when:
