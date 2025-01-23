@@ -5,14 +5,17 @@ if ! hab svc status | grep -q "ilert-heartbeat"; then
   hab svc load deeep-network/ilert-heartbeat
 fi
 
-if ! hab svc status | grep -q "ansible"; then
-  echo "Loading ansible service..."
-  hab svc load deeep-network/ansible
+## @todo - activate once we have an overlay network established
+## install only for now
+hab pkg install deeep-network/manager
 
-  # it takes a while for ansible-rulebook to spin up so lets
-  # wait for it before calling the endpoint
-  until curl -s http://127.0.0.1:33337 >/dev/null 2>&1; do
-    echo "Waiting on ansible-rulebook..."
-    sleep 2
-  done
-fi
+# if ! hab svc status | grep -q "manager"; then
+#   echo "Loading DeEEP Manager service..."
+#   hab svc load deeep-network/manager
+
+#   # wait for receptor control socket
+#   until [ -S /tmp/receptor.sock ]; do
+#     echo "Waiting for receptor socket..."
+#     sleep 2
+#   done
+# fi

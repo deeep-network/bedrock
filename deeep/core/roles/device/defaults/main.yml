@@ -1,0 +1,8 @@
+---
+device_cmd: "{{ deeep_cmd | default('deploy') }}"
+
+device_os_ram_gb: 2                # Host OS RAM reservation
+device_vm_ram_gb: 4                # RAM per VM in GB
+device_vm_storage_gb: 60           # Storage per VM in GB
+device_ram_buffer_percent: 20      # RAM buffer percentage
+device_storage_buffer_percent: 20  # Storage buffer percentage
