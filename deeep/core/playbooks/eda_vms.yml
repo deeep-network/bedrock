@@ -10,6 +10,40 @@
     ram_buffer_percent: 20      # RAM buffer percentage
     storage_buffer_percent: 20  # Storage buffer percentage
   tasks:
+    - name: Get current VMs
+      ansible.builtin.command: lxc list -f csv -cn
+      register: lxd_vms
+      changed_when: false
+
+    - name: Set current VMs
+      ansible.builtin.set_fact:
+        current_vms: "{{ lxd_vms.stdout_lines | select('match', '^vm-.*') | list }}"
+
+    - name: Check for orphaned VM
+      ansible.builtin.uri:
+        url: "https://beta.deeep.network/api/v1/device/{{ ansible_nodename }}/vms"
+        return_content: true
+        status_code: 200
+      register: _vms
+
+    - name: Determine VMs to delete
+      vars:
+        _expected: "{{ _vms['json']['expected'] }}"
+        _orphaned: "{{ _vms['json']['orphaned'] }}"
+      ansible.builtin.set_fact:
+        _decomissioning: "{{ (current_vms | difference(_expected)) + _orphaned | unique }}"
+
+    - name: Delete VM
+      when:
+        - _decomissioning | length > 0
+      community.general.lxd_container:
+        name: "{{ _vm }}"
+        state: absent
+        type: virtual-machine
+      loop: "{{ _decomissioning }}"
+      loop_control:
+        loop_var: _vm
+
     - name: Ensure running on VM
       ansible.builtin.assert:
         that: ansible_virtualization_role == 'host'
@@ -30,14 +64,8 @@
         max_vms_ram: "{{ ((ansible_memtotal_mb / 1024 - host_os_ram_gb - (ansible_memtotal_mb / 1024 * ram_buffer_percent / 100)) / vm_ram_gb) | int }}"
         max_vms_storage: "{{ ((storage_total_gb | int * (100 - storage_buffer_percent) / 100) / vm_storage_gb) | int }}"
 
-    - name: Get current VMs
-      ansible.builtin.command: lxc list -f csv -cn
-      register: lxd_vms
-      changed_when: false
-
     - name: Set required facts
       ansible.builtin.set_fact:
-        current_vms: "{{ lxd_vms.stdout_lines | select('match', '^vm-.*') | list }}"
         max_vms: "{{ [max_vms_cpu, max_vms_ram] | min }}"
 
     - name: Generate capacity report content
@@ -177,28 +205,3 @@
               ansible.builtin.command:
                 cmd: sudo lxc exec {{ vm['name'] }} -- su -c "echo {{ private_key.stdout }} | base64 -d > /device-private-key"
               changed_when: false
-
-    - name: Check for orphaned VM
-      ansible.builtin.uri:
-        url: "https://beta.deeep.network/api/v1/device/{{ ansible_nodename }}/vms"
-        return_content: true
-        status_code: 200
-      register: _vms
-
-    - name: Determine VMs to delete
-      vars:
-        _expected: "{{ _vms['json']['expected'] }}"
-        _orphaned: "{{ _vms['json']['orphaned'] }}"
-      ansible.builtin.set_fact:
-        _decomissioning: "{{ (current_vms | difference(_expected)) + _orphaned | unique }}"
-
-    - name: Delete VM
-      when:
-        - _decomissioning | length > 0
-      community.general.lxd_container:
-        name: "{{ _vm }}"
-        state: absent
-        type: virtual-machine
-      loop: "{{ _decomissioning }}"
-      loop_control:
-        loop_var: _vm
