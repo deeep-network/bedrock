@@ -66,7 +66,7 @@
 
     - name: Set required facts
       ansible.builtin.set_fact:
-        max_vms: "{{ [max_vms_cpu, max_vms_ram] | min }}"
+        max_vms: "{{ [max_vms_cpu | int, max_vms_ram | int] | min }}"
 
     - name: Generate capacity report content
       ansible.builtin.copy:
