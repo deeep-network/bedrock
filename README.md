@@ -26,12 +26,14 @@ apt install pipx
 
 ```bash
 pipx install ansible-core
-pipx inject ansible-core requests pynetbox pyutils pytz netaddr
+pipx inject ansible-core psutil netaddr pytz prometheus-client
 ```
 
 ```bash
 pipx install ansible-lint
 ```
+
+## Verify Ansible collections
 
 ```bash
 pipx install --include-deps ansible-sign
@@ -49,7 +51,7 @@ pipx install --include-deps molecule
 pipx ensurepath
 ```
 
-> You can either log out of the shell and log back in or run the following command to refresh your PATH
+> You can either log out and log back in to your shell or run the following command to refresh your PATH
 
 ```bash
 source ~/.bashrc
@@ -95,56 +97,10 @@ snap install multipass
 
 ### linux/windows/macos
 
-> not well tested
+> not well tested, tread carefully
 
 #### UTM - [docs](https://mac.getutm.app/)
 
 ```bash
 brew install --cask utm
 ```
-
----
-
-> With restructure this needs more work
-
-## Using Molecule
-
-1. set the `MOLECULE_SUBSTRATE` environment variable to the one of your choice
-
-    > If you've already ran molecule before updating this variable you may need to use `molecule destroy` or `molecule reset` for it to take effect
-
-2. Setup Pulumi ESC
-
-    1. Install [Pulumi ESC](https://www.pulumi.com/docs/esc/download-install/)
-
-    2. Install [Direnv](https://direnv.net/docs/installation.html)
-
-    3. Login to Pulumi ESC - request access to `deeep-network/dev/services` (DM @anthonyra)
-
-    4. run `direnv allow .` in root directory
-
-3. test **all** services
-
-    ```bash
-    molecule converge
-    ```
-
-4. testing an **individual** service
-
-    4a. create new molecule scenario
-
-    > `molecule init scenario` works but requires modifications due to trying to use the same molecule across collection
-
-    ```bash
-    cp -r molecule/default molecule/test
-    ```
-
-    4b. update converge.yml
-
-    Update the `converge.yml` to include the logic for testing the role
-
-    4c. run new scenario
-
-    ```bash
-    molecule converge -s test
-    ```

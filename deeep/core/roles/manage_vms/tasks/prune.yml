@@ -1,0 +1,36 @@
+---
+- name: Get status of VMs
+  ansible.builtin.uri:
+    url: "https://beta.deeep.network/api/v1/device/{{ ansible_nodename }}/vms"
+    return_content: true
+    status_code: 200
+  register: _vms
+
+- name: Get current VM count
+  become: true
+  ansible.builtin.command: lxc list -f csv -cn
+  register: lxd_vms
+  changed_when: false
+
+- name: Determine limiting factor
+  ansible.builtin.set_fact:
+    current_vms: "{{ lxd_vms.stdout_lines | select('match', '^vm-.*') | list }}"
+    max_vms: "{{ [max_vms_cpu, max_vms_ram] | min }}"
+
+- name: Determine VMs to prune
+  vars:
+    _expected: "{{ _vms.get('json', {}).get('data', {}).get('expected', []) }}"
+    _orphaned: "{{ _vms.get('json', {}).get('data', {}).get('orphaned', []) }}"
+  ansible.builtin.set_fact:
+    _decomissioning: "{{ (current_vms | difference(_expected)) + _orphaned | unique }}"
+
+- name: Prune VMs
+  when:
+    - _decomissioning | length > 0
+  community.general.lxd_container:
+    name: "{{ _vm }}"
+    state: absent
+    type: virtual-machine
+  loop: "{{ _decomissioning }}"
+  loop_control:
+    loop_var: _vm

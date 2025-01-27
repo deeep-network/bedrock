@@ -1,0 +1,9 @@
+---
+- name: Manage Device
+  hosts: localhost
+  gather_facts: true
+  become: true
+  tasks:
+    - name: Manage VMs
+      ansible.builtin.import_role:
+        name: deeep.core.manage_vms

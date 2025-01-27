@@ -1,0 +1,105 @@
+---
+- name: Ensure running on VM
+  ansible.builtin.assert:
+    that: ansible_virtualization_role == 'host'
+
+- name: Get LXD storage pool info
+  become: true
+  ansible.builtin.command: lxc storage show default --resources
+  register: lxd_storage
+  changed_when: false
+
+- name: Set storage facts
+  ansible.builtin.set_fact:
+    storage_total_gb: "{{ (lxd_storage.stdout | from_yaml).space.total | float / 1024 / 1024 / 1024 | round }}"
+    storage_used_gb: "{{ (lxd_storage.stdout | from_yaml).space.used | float / 1024 / 1024 / 1024 | round }}"
+
+- name: Calculate max values
+  vars:
+    _available_memory: |
+      {{ (ansible_memtotal_mb / 1024 - manage_vms_host_os_ram_gb - (ansible_memtotal_mb / 1024 * manage_vms_host_ram_buffer_percent / 100)) }}
+  ansible.builtin.set_fact:
+    max_vms_cpu: "{{ (ansible_processor_vcpus * 2) | int }}"
+    max_vms_ram: "{{ (_available_memory / manage_vms_ram_gb) | int }}"
+    max_vms_storage: "{{ ((storage_total_gb | int * (100 - manage_vms_host_storage_buffer_percent) / 100) / manage_vms_storage_gb) | int }}"
+
+- name: Get current VM count
+  become: true
+  ansible.builtin.command: lxc list -f csv -cn
+  register: lxd_vms
+  changed_when: false
+
+- name: Determine limiting factor
+  ansible.builtin.set_fact:
+    current_vms: "{{ lxd_vms.stdout_lines | select('match', '^vm-.*') | list }}"
+    max_vms: "{{ [max_vms_cpu | int, max_vms_ram | int] | min }}"
+
+- name: Generate capacity report content
+  ansible.builtin.copy:
+    content: |
+      System Capacity Report
+      =====================
+      Current VMs.............: {{ current_vms | length }}
+      Hard Cap for VMs (CPU/RAM)..: {{ max_vms }}
+
+      Resource Status:
+      ---------------
+      CPU................: {{ max_vms_cpu }} VMs ({{ ansible_processor_vcpus }} vCPUs × 2)
+      RAM................: {{ max_vms_ram }} VMs ({{ (ansible_memtotal_mb / 1024) | float | round }}GB total)
+      Storage............: {{ max_vms_storage | int }} VMs ({{ storage_total_gb | float | round }}GB total)
+      {% if (current_vms | length) > (max_vms_storage | int) %}
+      WARNING: Storage capacity exceeded recommended limit of {{ max_vms_storage | int }} VMs
+      {% endif %}
+    dest: "/var/log/vm_capacity_report.txt"
+    mode: '0644'
+
+- name: Check if new VM can be created
+  ansible.builtin.assert:
+    that: (current_vms | length) + 1 <= max_vms | int
+    fail_msg: "Would exceed calculated maximum. View report: `cat /var/log/vm_capacity_report.txt`"
+
+- name: Check if pressure metrics are available
+  ansible.builtin.stat:
+    path: /proc/pressure
+  register: pressure_exists
+
+- name: Use PSI metrics for resource checks
+  when: pressure_exists.stat.exists
+  block:
+    - name: Read CPU pressure metrics
+      ansible.builtin.command:
+        cmd: cat /proc/pressure/cpu
+      changed_when: false
+      register: cpu_pressure
+
+    - name: Read memory pressure metrics
+      ansible.builtin.command:
+        cmd: cat /proc/pressure/memory
+      changed_when: false
+      register: memory_pressure
+
+    - name: Check memory pressure
+      ansible.builtin.assert:
+        that:
+          - memory_pressure.stdout_lines[0] | split('avg60=') | last | split(' ') | first | float <= 50.0
+        fail_msg: "Memory pressure too high: {{ memory_pressure.stdout_lines[0] | split('avg60=') | last | split(' ') | first }}%"
+        success_msg: "Memory pressure is acceptable"
+
+    - name: Check CPU pressure
+      ansible.builtin.assert:
+        that:
+          - cpu_pressure.stdout_lines[0] |
+            split('avg60=') |
+            last | split(' ') | first |
+            float <= [ansible_processor_vcpus | int - 2, 2] | max
+        fail_msg: "CPU pressure too high: {{ cpu_pressure.stdout_lines[0] | split('avg60=') | last | split(' ') | first }}%"
+        success_msg: "CPU pressure is acceptable"
+  rescue:
+    - name: Fall back to traditional resource checks
+      block:
+        - name: Check load average
+          ansible.builtin.assert:
+            that:
+              - ansible_loadavg['1m'] | float <= (ansible_processor_vcpus | int - 2)
+            fail_msg: "System load is too high: {{ ansible_loadavg['1m'] }}"
+            success_msg: "System load is acceptable"

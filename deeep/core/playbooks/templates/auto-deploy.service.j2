@@ -9,10 +9,7 @@ After=network.target
 Type=oneshot
 # if taking longer than 5 minutes let it fail
 ExecStartPre=/usr/bin/timeout 300s /bin/bash /run/bootstrap.sh
-ExecStart=/usr/bin/curl \
-  -sH "Content-Type: application/json" \
-  -d '{"trigger":"{{ eda_rulebook | default("eda_vms")}}"}' \
-  http://127.0.0.1:33337/endpoint
+ExecStart=/usr/bin/ansible-playbook deeep.core.{{ deeep_playbook | default("manage_device")}}
 
 [Install]
 WantedBy=multi-user.target
