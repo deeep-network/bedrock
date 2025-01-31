@@ -3,11 +3,6 @@
   hosts: localhost
   gather_facts: false
   tasks:
-    - name: Get ESC from Pulumi
-      ansible.builtin.command: esc open deeep-network/dev/services --format dotenv
-      changed_when: false
-      register: pulumi_esc
-
     - name: Create cloud-init file
       vars:
         ansible_event_type: manage

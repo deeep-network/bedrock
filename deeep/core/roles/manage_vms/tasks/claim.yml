@@ -7,7 +7,7 @@
 
 - name: Claim a VM
   ansible.builtin.uri:
-    url: "https://beta.deeep.network/api/v1/device/{{ ansible_nodename }}/claim"
+    url: "https://beta.deeep.network/api/v1/device/{{ ansible_nodename }}/claim?self={{ manage_vms_claim_on_self }}"
     return_content: true
     status_code: 200
   register: _claim

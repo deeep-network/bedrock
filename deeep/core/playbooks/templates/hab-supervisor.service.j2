@@ -5,10 +5,14 @@ Description=The Chef Habitat Supervisor
 EnvironmentFile=/etc/environment
 ExecStart=/usr/bin/hab sup run \
   --keep-latest-packages 2 \
+{%- if deeep_playbook is defined and deeep_playbook == 'manage_services' %}
   --strategy at-once \
   --peer hab-bastion-1.lxd \
   --peer hab-bastion-2.lxd \
   --peer hab-bastion-3.lxd
+{% else %}
+  --strategy at-once
+{%- endif %}
 
 [Install]
 WantedBy=default.target

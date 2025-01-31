@@ -1,4 +1,5 @@
 ---
+manage_vms_claim_on_self: "{{ migrate | default(false) }}"
 manage_vms_ram_gb: 4                        # RAM per VM in GB
 manage_vms_storage_gb: 60                   # Storage per VM in GB
 manage_vms_host_os_ram_gb: 2                # Host OS RAM reservation
