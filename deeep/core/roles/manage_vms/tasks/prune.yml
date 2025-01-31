@@ -5,6 +5,7 @@
     return_content: true
     status_code: 200
   register: _vms
+  ignore_errors: true
 
 - name: Get current VM count
   become: true
@@ -21,8 +22,9 @@
   vars:
     _expected: "{{ _vms.get('json', {}).get('data', {}).get('expected', []) }}"
     _orphaned: "{{ _vms.get('json', {}).get('data', {}).get('orphaned', []) }}"
+    _diff: "{{ [] if not _expected else (current_vms | difference(_expected)) }}"
   ansible.builtin.set_fact:
-    _decomissioning: "{{ (current_vms | difference(_expected)) + _orphaned | unique }}"
+    _decomissioning: "{{ _diff + _orphaned | unique }}"
 
 - name: Prune VMs
   when:

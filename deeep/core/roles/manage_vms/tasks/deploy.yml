@@ -3,7 +3,7 @@
   vars:
     vm: "{{ current_claim.json.vm }}"
     vm_hostname: "{{ vm['name'] | split('.') | first }}.box.nerd-node.com"
-    deeep_playbook: "manage_services"
+    deeep_playbook: manage_services
     _vcpus: "{{ vm['vcpus'] | int }}"
     _memory: "{{ (vm['memory'] | int >= 1024) | ternary(vm['memory'] | int, '1024') }}MiB"
     _disk: "{{ vm['disk'] | int }}GiB"

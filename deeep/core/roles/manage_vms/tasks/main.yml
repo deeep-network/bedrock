@@ -1,4 +1,8 @@
 ---
+- name: Ensure running on VM
+  ansible.builtin.assert:
+    that: ansible_virtualization_role == 'host'
+
 - name: Prune VMs
   ansible.builtin.include_tasks: prune.yml
 

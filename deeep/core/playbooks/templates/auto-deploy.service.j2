@@ -7,8 +7,6 @@ After=network.target
 
 [Service]
 Type=oneshot
-# if taking longer than 5 minutes let it fail
-ExecStartPre=/usr/bin/timeout 300s /bin/bash /run/bootstrap.sh
 ExecStart=/usr/bin/ansible-playbook deeep.core.{{ deeep_playbook | default("manage_device")}}
 
 [Install]

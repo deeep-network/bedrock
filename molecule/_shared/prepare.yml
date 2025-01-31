@@ -8,7 +8,8 @@
     ipv4_address: "{{ ansible_default_ipv4.address | default(ansible_all_ipv4_addresses | first) }}"
   tasks:
     ## cloud-init installs the latest signed collection via github
-    # we need to make sure we install the local version for tests
+    # we need to make sure we install the local version for local
+    # development
     - name: Build collection packages
       delegate_to: localhost
       block:

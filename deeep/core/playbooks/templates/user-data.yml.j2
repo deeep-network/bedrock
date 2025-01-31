@@ -15,8 +15,6 @@ packages:
   - apt-transport-https
   - ca-certificates
   - gpg
-  - zfsutils-linux
-  - ksmtuned
 package_upgrade: true
 package_update: true
 
@@ -44,23 +42,12 @@ write_files:
     append: true
     content: |
       HAB_AUTH_TOKEN={{ ansible_env['HAB_AUTH_TOKEN'] | default(lookup('env', 'HAB_AUTH_TOKEN')) }}
+      PULUMI_ACCESS_TOKEN={{ ansible_env['PULUMI_ACCESS_TOKEN'] | default(lookup('env', 'PULUMI_ACCESS_TOKEN')) }}
   - path: /etc/systemd/system/hab-supervisor.service
     content: |
       {{ lookup('ansible.builtin.template', 'hab-supervisor.service.j2') | trim | indent( width=6 ) }}
-  - path: /run/bootstrap.sh
-    content: |
-      {{ lookup('ansible.builtin.file', 'bootstrap.sh') | trim | indent( width=6 ) }}
-  - path: /etc/systemd/system/auto-deploy.service
-    content: |
-      {{ lookup('ansible.builtin.template', 'auto-deploy.service.j2') | trim | indent( width=6 ) }}
-  - path: /etc/systemd/system/auto-deploy.timer
-    content: |
-      {{ lookup('ansible.builtin.template', 'auto-deploy.timer.j2') | trim | indent( width=6 ) }}
 
 runcmd:
-  - curl https://raw.githubusercontent.com/habitat-sh/habitat/main/components/hab/install.sh | bash
-  - hab license accept
-  - hab origin key download deeep-network
   - systemctl daemon-reload
-  - systemctl enable hab-supervisor.service auto-deploy.timer
-  - systemctl start hab-supervisor.service auto-deploy.timer
+  - systemctl enable hab-supervisor.service
+  - systemctl start hab-supervisor.service

@@ -1,8 +1,4 @@
 ---
-- name: Ensure running on VM
-  ansible.builtin.assert:
-    that: ansible_virtualization_role == 'host'
-
 - name: Get LXD storage pool info
   become: true
   ansible.builtin.command: lxc storage show default --resources
@@ -33,6 +29,27 @@
   ansible.builtin.set_fact:
     current_vms: "{{ lxd_vms.stdout_lines | select('match', '^vm-.*') | list }}"
     max_vms: "{{ [max_vms_cpu | int, max_vms_ram | int] | min }}"
+
+- name: Check if sysctl file exists
+  ansible.builtin.stat:
+    path: /etc/sysctl.d/99-lxd.conf
+  register: sysctl_file
+
+- name: Set proper sysctl settings
+  when:
+    - max_vms | int > 30
+    - not sysctl_file.stat.exists
+  become: true
+  block:
+    - name: Save configuration file
+      ansible.builtin.template:
+        src: "99-lxd.conf.j2"
+        dest: /etc/sysctl.d/99-lxd.conf
+        mode: '0644'
+
+    - name: Apply sysctl settings
+      ansible.builtin.command: sysctl --system
+      changed_when: false
 
 - name: Generate capacity report content
   ansible.builtin.copy:
