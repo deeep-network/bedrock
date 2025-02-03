@@ -10,14 +10,14 @@ backoff=5  # Starting backoff time in seconds
 max_backoff=$((5 * 60))  # 5 minutes in seconds
 attempt=1
 
-## install hab on local host
+## install hab on local host to be able to install ansible
 curl https://raw.githubusercontent.com/habitat-sh/habitat/main/components/hab/install.sh | sudo bash
 sudo hab license accept
 sudo hab origin key download deeep-network
 
 while true; do
     echo "Attempt $attempt: Installing deeep-network/ansible..."
-    if sudo hab pkg install deeep-network/ansible --channel unstable; then
+    if sudo hab pkg install deeep-network/ansible; then
         echo "Successfully installed ansible package"
         break
     fi

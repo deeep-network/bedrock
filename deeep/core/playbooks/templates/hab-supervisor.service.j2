@@ -5,7 +5,7 @@ Description=The Chef Habitat Supervisor
 EnvironmentFile=/etc/environment
 ExecStart=/usr/bin/hab sup run \
   --keep-latest-packages 2 \
-{%- if deeep_playbook is defined and deeep_playbook == 'manage_services' %}
+{%- if ansible_virtualization_role == 'guest' %}
   --strategy at-once \
   --peer hab-bastion-1.lxd \
   --peer hab-bastion-2.lxd \

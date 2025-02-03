@@ -16,7 +16,7 @@
       {{ (ansible_memtotal_mb / 1024 - manage_vms_host_os_ram_gb - (ansible_memtotal_mb / 1024 * manage_vms_host_ram_buffer_percent / 100)) }}
   ansible.builtin.set_fact:
     max_vms_cpu: "{{ (ansible_processor_vcpus * 2) | int }}"
-    max_vms_ram: "{{ (_available_memory / manage_vms_ram_gb) | int }}"
+    max_vms_ram: "{{ (_available_memory | int / manage_vms_ram_gb) | int }}"
     max_vms_storage: "{{ ((storage_total_gb | int * (100 - manage_vms_host_storage_buffer_percent) / 100) / manage_vms_storage_gb) | int }}"
 
 - name: Get current VM count

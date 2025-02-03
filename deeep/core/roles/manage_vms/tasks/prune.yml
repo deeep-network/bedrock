@@ -13,11 +13,6 @@
   register: lxd_vms
   changed_when: false
 
-- name: Determine limiting factor
-  ansible.builtin.set_fact:
-    current_vms: "{{ lxd_vms.stdout_lines | select('match', '^vm-.*') | list }}"
-    max_vms: "{{ [max_vms_cpu, max_vms_ram] | min }}"
-
 - name: Determine VMs to prune
   vars:
     _expected: "{{ _vms.get('json', {}).get('data', {}).get('expected', []) }}"

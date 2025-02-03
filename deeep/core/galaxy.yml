@@ -1,6 +1,6 @@
 namespace: deeep
 name: core
-version: 2.1.0
+version: 2.1.2
 readme: README.md
 authors:
 - Anthony Anderson anthony@deeep.network

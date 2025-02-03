@@ -1,5 +1,5 @@
 ---
-- name: Ensure running on VM
+- name: Ensure running on Device
   ansible.builtin.assert:
     that: ansible_virtualization_role == 'host'
 
