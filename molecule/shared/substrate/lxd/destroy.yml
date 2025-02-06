@@ -1,0 +1,31 @@
+---
+- name: Destroy LXD containers using command module
+  hosts: all
+  gather_facts: false
+  become: true
+  vars:
+    molecule_yml:
+      platforms:
+        - name: instance
+          user: ansible
+
+  tasks:
+    - name: Check if LXD container exists
+      ansible.builtin.command: lxc list "{{ platform['name'] }}" --format=json
+      register: lxd_container_info
+      ignore_errors: true
+      loop: "{{ molecule_yml['platforms'] }}"
+      loop_control:
+        loop_var: platform
+
+    - name: Debug container existence
+      ansible.builtin.debug:
+        var: lxd_container_info
+
+    - name: Destroy LXD containers if exists using lxc delete
+      ansible.builtin.command: >
+        lxc delete {{ platform['name'] }} --force
+      when: lxd_container_info.results[0].stdout != '[]'
+      loop: "{{ molecule_yml['platforms'] }}"
+      loop_control:
+        loop_var: platform
