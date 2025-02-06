@@ -43,6 +43,7 @@ jobs:
           branch: main
           majorList: 'major'
           patchList: 'fix, perf'
+          skipInvalidTags: true
 
   setup:
     needs: [version]
