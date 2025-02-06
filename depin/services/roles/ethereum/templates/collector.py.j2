@@ -1,0 +1,156 @@
+#!/usr/bin/env python3
+import os
+import socket
+import time
+import os
+import time
+import subprocess
+from subprocess import check_output
+import json
+import re
+
+from prometheus_client import start_http_server, REGISTRY, GC_COLLECTOR, PLATFORM_COLLECTOR, PROCESS_COLLECTOR
+from prometheus_client.core import GaugeMetricFamily
+from prometheus_client.registry import Collector
+
+try:
+    from utils_lxd import lxd_get
+except ImportError as imp_exc:
+    LXD_UTILS_IMPORT_ERROR = imp_exc
+else:
+    LXD_UTILS_IMPORT_ERROR = None
+
+class MetricsCollector(Collector):
+    """Collector for Gala Node information"""
+    def total_uptime_count(self, besu_service_date):
+        total_uptime=0
+        for x in besu_service_date:
+            state_uptime_list = besu_service_date[x].split(":")
+            hours=0
+            if len(state_uptime_list) <= 2:
+                minutes = int(state_uptime_list[0])
+                seconds = int(state_uptime_list[1])
+            else:
+                hours = int(state_uptime_list[0])
+                minutes = int(state_uptime_list[1])
+                seconds = int(state_uptime_list[2])
+            total_uptime=total_uptime+seconds+minutes*60+hours*3600
+        return total_uptime
+
+    def collect(self):
+        result = []
+        service_metrics_collected = 1
+
+        service_name = "ethereum_besu"
+        try:
+            p =  subprocess.Popen(["systemctl", "status",  service_name], stdout=subprocess.PIPE)
+            (output, err) = p.communicate()
+            output = output.decode('utf-8')
+            print()
+            y= re.search("Active: .*active", output) 
+            status= y.group().split(" ")
+            if status[1] == 'active':
+                state = 1
+            else:
+                print("exit")
+                state = 0
+                sys.exit(1)
+            
+            x = re.search("Main PID: [0-9]+", output) 
+            pid= x.group().split(" ")
+            pid_id=pid[2]
+            proc = subprocess.Popen(
+            ["ps", "-eo", "pid,comm,lstart,etime,time"], stdout=subprocess.PIPE
+            )   
+            proc.wait()
+            services_pids = proc.stdout.readlines()
+
+            try:
+                f = open("ethereum_besu_total_uptime.txt", "r")
+                besu_service_date = json.loads(f.read().replace("'", '"'))
+                os.remove("ethereum_besu_total_uptime.txt")
+            except:
+                print("No file")
+                besu_service_date={}
+
+            for pid_decription in services_pids:
+                pid_decription = pid_decription.decode("utf-8")
+                p = pid_decription.split()[0]
+                if p == pid_id:
+                    print(pid_decription)
+                    month = pid_decription.split()[3]
+                    day = pid_decription.split()[4]
+                    time_str = pid_decription.split()[5]
+                    years = pid_decription.split()[6]
+                    run_uptime = pid_decription.split()[7]
+                    state_uptime_dic=run_uptime.split(":")
+                    if len(state_uptime_dic)<=2:
+                        hours=0
+                        minutes = int(state_uptime_dic[0])
+                        seconds = int(state_uptime_dic[1])
+                    else:
+                        hours = int(state_uptime_dic[0])
+                        minutes = int(state_uptime_dic[1])
+                        seconds = int(state_uptime_dic[2])
+                    state_uptime=seconds+minutes*60+hours*3600
+                    date_str = month + "-" + day + "-" + years + " " + time_str
+                    besu_service_date[date_str] = run_uptime
+            total_uptime=self.total_uptime_count(besu_service_date)
+            f = open("ethereum_besu_total_uptime.txt", "w")
+            f.write(str(besu_service_date))
+            f.close()    
+
+        except:
+
+            print("Service: "+ service_name + " wasn't found")
+            state = 0
+            state_uptime =0
+            try:
+                if os.path.isfile('./ethereum_besu_total_uptime.txt'):
+                    f = open("ethereum_besu_total_uptime.txt", "r")
+                    besu_service_date = json.loads(f.read().replace("'", '"'))
+                    total_uptime=self.total_uptime_count(besu_service_date)
+                    print(total_uptime)
+                else:
+                    print("No file")
+                    total_uptime=0
+            except:
+                print("The service has never been launched")
+                total_uptime=0
+                service_metrics_collected = 0
+                besu_service_date
+
+
+        #Mark for tests
+        device = 'molecule'
+        service = '{{ _name }}'
+        hostname = socket.gethostname()
+        _labels = ['device', 'instance', 'service']
+        _label_values = [device, hostname, service]
+        
+        g1 = GaugeMetricFamily('state','current state', labels=_labels)
+        g1.add_metric(_label_values, value=state)
+
+        g2 = GaugeMetricFamily('current_state_uptime','seconds in current state', labels=_labels)
+        g2.add_metric(_label_values, value=state_uptime)
+
+        g3 = GaugeMetricFamily('total_uptime','seconds in last 24 hours', labels=_labels)
+        g3.add_metric(_label_values, value=total_uptime)
+
+        result.extend([g1, g2, g3])
+                                    
+        success = GaugeMetricFamily('service_metrics_collected','service metrics collected successfully', labels=_labels)
+        success.add_metric(_label_values, value=service_metrics_collected)
+
+        result.extend([success])
+        return result
+
+if __name__ == "__main__":
+    REGISTRY.unregister(GC_COLLECTOR)
+    REGISTRY.unregister(PLATFORM_COLLECTOR)
+    REGISTRY.unregister(PROCESS_COLLECTOR)
+    REGISTRY.register(MetricsCollector())
+
+    start_http_server({{ vars[role_name + '_custom_metrics_port'] | int }})
+    while True:
+        time.sleep(30)
