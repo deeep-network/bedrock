@@ -2,4 +2,8 @@
   become: true
   ansible.builtin.command:
     cmd: sudo hab pkg install deeep-network/{{ service_name }}
+  register: _install
+  until: _install.rc == 0
+  retries: 10
+  delay: 30
   changed_when: false

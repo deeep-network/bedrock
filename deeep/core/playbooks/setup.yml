@@ -7,6 +7,10 @@
     - name: Install ESC package
       when: ansible_virtualization_role == 'host'
       ansible.builtin.command: sudo hab pkg install deeep-network/esc
+      register: _esc
+      until: _esc.rc == 0
+      retries: 10
+      delay: 30
       changed_when: false
 
     - name: Install Metrics Collector
@@ -21,6 +25,10 @@
         - name: Install Grafana Alloy
           when: _vmagent.rc == 0
           ansible.builtin.command: sudo hab pkg install deeep-network/grafana-alloy
+          register: _grafana_alloy
+          until: _grafana_alloy.rc == 0
+          retries: 10
+          delay: 30
           changed_when: false
 
     - name: Ensure resolved.conf.d directory exists
@@ -86,7 +94,7 @@
 
     - name: Load iLert Heartbeat
       block:
-        - name: Install latest
+        - name: Install latest iLert Heartbeat
           ansible.builtin.command: sudo hab pkg install deeep-network/ilert-heartbeat
           register: _install
           until: _install.rc == 0
@@ -94,7 +102,7 @@
           delay: 30
           changed_when: false
 
-        - name: Force load heartbeat service
+        - name: Force load iLert Heartbeat
           ansible.builtin.command: sudo hab svc load deeep-network/ilert-heartbeat --strategy at-once --force
           register: _load
           until: _load.rc == 0

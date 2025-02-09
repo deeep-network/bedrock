@@ -13,6 +13,7 @@
     timeout: 60
   register: _claim
 
+
 - name: Add new claim to processing list
   vars:
     _job_id: "{{ _claim.get('json', {}).get('data', {}).get('id') }}"

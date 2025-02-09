@@ -4,4 +4,8 @@
   ansible.builtin.command:
     cmd: sudo hab svc load deeep-network/{{ service_name }} --group services --strategy rolling --topology leader
     creates: /hab/svc/{{ service_name }}/PID
+  register: _start
+  until: _start.rc == 0
+  retries: 10
+  delay: 30
   changed_when: false
