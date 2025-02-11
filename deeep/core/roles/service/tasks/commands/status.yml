@@ -1,0 +1,32 @@
+---
+- name: Check status for {{ service_name }}
+  become: true
+  become_user: root
+  block:
+    - name: Check if status script exists
+      ansible.builtin.stat:
+        path: /hab/svc/{{ service_name }}/config_install/status.sh
+      register: status_script
+
+    - name: Assert status script exists
+      ansible.builtin.assert:
+        that: status_script.stat.exists
+        fail_msg: "Status script not found for {{ service_name }}"
+
+    - name: Try packages status script
+      ansible.builtin.shell:
+        cmd: /hab/svc/{{ service_name }}/config_install/status.sh
+      args:
+        executable: /bin/bash
+      changed_when: false
+      register: _status
+  rescue:
+    - name: Fallback to hab status
+      ansible.builtin.command:
+        cmd: sudo hab svc status
+      changed_when: false
+      register: _status
+
+- name: Print status
+  ansible.builtin.debug:
+    msg: "{{ _status.stdout | regex_replace('\u001b\\[[0-9;]*[mK]', '') | regex_replace('\\n', ' ') | trim }}"

@@ -52,16 +52,24 @@
       vars:
         service_cmd: start
         service_name: "{{ item }}"
+      when: services_to_load | length > 0
       ansible.builtin.include_role:
         name: deeep.core.service
       loop: "{{ services_to_load }}"
-      when: services_to_load | length > 0
 
     - name: Stop services
       vars:
         service_cmd: stop
         service_name: "{{ item }}"
+      when: services_to_unload | length > 0
       ansible.builtin.include_role:
         name: deeep.core.service
       loop: "{{ services_to_unload }}"
-      when: services_to_unload | length > 0
+
+    - name: Check statuses
+      when:
+        - required_services | length > 0
+        - services_to_load | length == 0
+      ansible.builtin.include_role:
+        name: deeep.core.service
+      loop: "{{ services_to_unload }}"

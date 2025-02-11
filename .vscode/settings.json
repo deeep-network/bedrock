@@ -4,5 +4,6 @@
     "ci",
     "tests"
   ],
-  "inline-bookmarks.view.showVisibleFilesOnly": false
+  "inline-bookmarks.view.showVisibleFilesOnly": false,
+  "git.autofetch": true
 }
