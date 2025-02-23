@@ -90,7 +90,7 @@
       ansible.builtin.wait_for:
         path: /hab/sup/default/LOCK
         state: present
-        timeout: 30
+        timeout: 300
 
     - name: Load iLert Heartbeat
       block:
