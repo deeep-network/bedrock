@@ -131,7 +131,7 @@ jobs:
           echo "name=$(echo ${{ matrix.dir }} | tr / . | sed -E 's/\.\.+//g')" >> $GITHUB_OUTPUT
 
       - name: Retrieve requirements.yml
-        uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4.1.8
+        uses: actions/download-artifact@cc203385981b70ca67e1cc392babf9cc229d5806 # v4.1.9
         if: strategy.job-index != 0
         continue-on-error: true
         with:
@@ -174,7 +174,7 @@ jobs:
           delete-merged: true
           
       - name: Retrieve Artifacts
-        uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4.1.8
+        uses: actions/download-artifact@cc203385981b70ca67e1cc392babf9cc229d5806 # v4.1.9
         id: release-artifacts
         with:
           name: ansible-collections
