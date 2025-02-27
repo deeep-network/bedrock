@@ -1,0 +1,18 @@
+[Unit]
+Description=ethereum_teku service
+After=network.target 
+
+[Service]
+User=root
+Group=root
+Type=simple
+WorkingDirectory=/opt/ethereum_teku/{{ ethereum_teku_version }}
+ExecStart=/opt/ethereum_teku/{{ ethereum_teku_version }}/bin/teku --config-file=/opt/ethereum_teku/{{ ethereum_teku_version }}/config_teku.yaml 
+RestartForceExitStatus=1
+RestartPreventExitStatus=2
+Restart=on-failure
+RestartSec=20s
+
+
+[Install]
+WantedBy=multi-user.target
