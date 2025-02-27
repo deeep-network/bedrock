@@ -13,7 +13,7 @@ tags: []
 
 dependencies:
   ansible.posix: "1.5.4"
-  community.general: "10.2.0"
+  community.general: "10.3.0"
 
 repository: https://github.com/deeep-network/ansible_collections
 documentation: https://docs.deeep.network
