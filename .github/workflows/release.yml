@@ -21,14 +21,6 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Get versio
-        uses: chaaz/versio-actions/install@v1.3
-
-      # using versio we figure out what version each collection should be
-      # this version is independent of the bedrock released version
-      - name: Update Ansible Collections
-        run: versio release
-
       # calculate the bedrock release version
       - name: Get next version
         id: semver
@@ -65,7 +57,7 @@ jobs:
           echo "dirs=$dirs" >> ${GITHUB_OUTPUT}
 
   build:
-    needs: [setup, version]
+    needs: [setup]
     runs-on: ubuntu-latest
     strategy:
       max-parallel: 1
@@ -90,6 +82,14 @@ jobs:
         with:
             fetch-depth: 0
             clean: true
+
+      - name: Get versio
+        uses: chaaz/versio-actions/install@v1.3
+
+      # using versio we figure out what version each collection should be
+      # this version is independent of the bedrock released version
+      - name: Update Ansible Collections
+        run: versio release
 
       - name: Create artifacts directory
         run: mkdir artifacts
