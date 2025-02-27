@@ -5,7 +5,8 @@
     vm_hostname: "{{ vm['name'] | split('.') | first }}.box.nerd-node.com"
     _vcpus: "{{ vm['vcpus'] | int }}"
     _memory: "{{ (vm['memory'] | int >= 1024) | ternary(vm['memory'] | int, '1024') }}MiB"
-    _disk: "{{ vm['disk'] | int }}GiB"
+    ## @todo - netbox changed how resources are handled
+    _disk: "{{ (vm['disk'] / 1000) | int }}GiB"
   block:
     - name: Create VM with LXD
       community.general.lxd_container:
