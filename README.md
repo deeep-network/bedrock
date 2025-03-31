@@ -166,12 +166,13 @@ From the root of the bedrock repo run the following command:
 molecule create
 ```
 
-This will create the virtual machine and install the needed dependencies. You can follow the creation process (or troubleshoot it) on the VM:
+This will create the virtual machine and install the needed dependencies. You can follow the creation process (or troubleshoot it) on the VM. For example, if using OrbStack, you can shell into the VM with the orb cli and follow the cloud-init logs:
 
 ```bash
-sudo tail -f /var/log/cloud-init-output.log
+> orb -m bedrock -u nerdnode
+$bedrock> sudo tail -f /var/log/cloud-init-output.log
 ```
-
+[More Orb Commands](https://docs.orbstack.dev/machines/commands)
 # Next Steps
 
 Develop a new service with [coral-reef](https://github.com/deeep-network/coral-reef)
