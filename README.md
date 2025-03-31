@@ -1,10 +1,7 @@
 ![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/deeep-network/ansible_collections/badge)
 
-# Overview
-Developing with bedrock requires a virtual machine, a habitat account, and other dependencies. 
 - [Overview](#overview)
 - [Virtual Machine Setup](#virtual-machine-setup)
-  - [Background](#background)
     - [macos (apple silicon)](#macos-apple-silicon)
       - [orbstack - docs](#orbstack---docs)
     - [linux/windows/macos (intel)](#linuxwindowsmacos-intel)
@@ -26,10 +23,13 @@ Developing with bedrock requires a virtual machine, a habitat account, and other
 - [Getting Started](#getting-started)
 - [Next Steps](#next-steps)
 
-# Virtual Machine Setup
-You'll need to install virtualization software to run and develop on a virtual machine created by bedrock.
+# Overview
 
-## Background
+Developing with bedrock requires a virtual machine, a habitat account, and other dependencies. 
+
+# Virtual Machine Setup
+You'll need to install virtualization software on your host machine to run bedrock.
+
 On the DeEEP Device - the main Ansible Controller is the Device itself which in turn can manage the VM's (via Incus). Each VM is also an independent Ansible Controller for itself. This setup requires every role to be `localhost` first when developed. This isn't the normal way Ansible is meant to be used (push model) so there are some gotchas and things we do that are slightly out of the norm. Being `localhost` first however provides the VMs the ability to configure themselves when necessary. It's also important to note that if it works via `localhost` it will always work being pushed (not always the case in reverse).
 
 > [!NOTE] For testing, we skip the Incus layer. Meaning the Ansible Controller for tests is your local machine (acting like the Device). Pushing directly to the VM running locally (managed by Orbstack, multipass, KVM, or LXD). This is meant to simplify the testing process. Especially since MacOS support for intel based CPU architecture is not well supported.
@@ -166,7 +166,11 @@ From the root of the bedrock repo run the following command:
 molecule create
 ```
 
-This will create the virtual machine and install the needed dependencies.
+This will create the virtual machine and install the needed dependencies. You can follow the creation process (or troubleshoot it) on the VM:
+
+```bash
+sudo tail -f /var/log/cloud-init-output.log
+```
 
 # Next Steps
 
