@@ -1,7 +1,5 @@
 #!/bin/bash
 
-declare -a instances_to_create=()
-
 # Setup LXD
 lxd activateifneeded
 
