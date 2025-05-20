@@ -21,27 +21,27 @@ package_update: true
 ssh_pwauth: false
 
 groups:
-  - users
+  - docker
 
 users:
   - name: nerdnode
     gecos: NerdNode Admin Account
     groups:
-      - admin
-      - wheel
-      - users
+      - adm
+      - sudo
+      - docker
     sudo: ALL=(ALL) NOPASSWD:ALL
     shell: /bin/bash
     lock_passwd: true
     ssh_authorized_keys:
       - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOEu3Yh+xr+oNfcj72bcqcZNhg3D1SzeHh+BQKX4/05V anthony@nerdnode.io
       - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICkYBKYaZlg7C39divuCWC8FOglu2rq/ohaeufR6/NBY corradob@corradob-t16g2
+      - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOCIF88llk8lVjJSghGtJy8LpNL3IuB4Z0uOSEyEjHYh lowellduke@Lowells-MacBook-Pro.local
 
 write_files:
   - path: /etc/environment
     append: true
     content: |
-      HAB_AUTH_TOKEN={{ ansible_env['HAB_AUTH_TOKEN'] | default(lookup('env', 'HAB_AUTH_TOKEN')) }}
       PULUMI_ACCESS_TOKEN={{ ansible_env['PULUMI_ACCESS_TOKEN'] | default(lookup('env', 'PULUMI_ACCESS_TOKEN')) }}
 
 runcmd:
